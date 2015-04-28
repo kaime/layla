@@ -5,6 +5,8 @@ which         = require 'which'
 childProcess  = require 'child_process'
 coffee        = require 'coffee-script'
 glob          = require 'glob'
+plist         = require 'plist'
+CSON          = require 'cson-parser'
 Layla         = require './src/lib'
 
 #
@@ -168,7 +170,7 @@ option '-s', '--source', 'Run tests against source coffee'
 task 'clean', 'Remove all built files and directories', ->
   queue ->
     log 'task', 'Cleaning up'
-    remove ['bin', 'lib', 'dist', 'test']
+    remove ['bin', 'lib', 'dist', 'test', 'etc']
 
 task 'build:bin', 'Build CLI binary', ->
   queue ->
@@ -223,6 +225,18 @@ task 'build:index', 'Build root `index.js`', ->
 
 task 'build:module', 'Build NPM module', ->
   invoke 'build:index'
+
+task 'build:tmlanguage', 'Build tmLanguage file', ->
+  queue ->
+    log 'task', 'Building tmLanguage'
+    mkdir 'etc', ->
+      read 'src/etc/tmLanguage.cson', (cson) ->
+        tmlanguage = CSON.parse cson
+        xml = plist.build tmlanguage
+        write 'etc/layla.tmLanguage', xml
+
+task 'build:etc', 'Build all etc files', ->
+  invoke 'build:tmlanguage'
 
 task 'build:all', 'Build everything', ->
   invoke 'build:lib'
