@@ -9,7 +9,7 @@ FACTORS = {}
 ###
 class Number extends Object
 
-  {round, ceil, floor, abs, pow, sin, cos, tan, asin, acos, atan} = Math
+  {round, ceil, floor, abs, pow} = Math
 
   RE_NUMERIC = /^\s*([\+-]?(?:\d*\.)?\d+)\s*(%|(?:[a-z]+))?\s*$/i
 
@@ -278,17 +278,21 @@ class Number extends Object
       throw new TypeError 'Cannot divide by 0'
     @clone @value % other.value
 
-  '.sin': -> @clone sin @value
+  '.trigonometric': (fn) ->
+    rads = @convert 'rad'
+    rads.clone (Math[fn] rads.value), ''
 
-  '.cos': -> @clone cos @value
+  '.sin': -> @['.trigonometric'] 'sin'
 
-  '.tan': -> @clone tan @value
+  '.cos': -> @['.trigonometric'] 'cos'
 
-  '.asin': -> @clone asin @value
+  '.tan': -> @['.trigonometric'] 'tan'
 
-  '.acos': -> @clone acos @value
+  '.asin': -> @['.trigonometric'] 'asin'
 
-  '.atan': -> @clone atan @value
+  '.acos': -> @['.trigonometric'] 'acos'
+
+  '.atan': -> @['.trigonometric'] 'atan'
 
   '.prime?': -> Boolean.new @isPrime()
 
