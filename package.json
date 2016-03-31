@@ -28,10 +28,12 @@
   "devDependencies": {
     "coffee-script": "^1.9.2",
     "coffeelint": "^1.9.3",
+    "color": "^0.11.1",
     "commonmark": "~0.12.0",
     "fs-extra": "^0.18.2",
     "glob": "^5.0.5",
     "mocha": "~2.2.0",
+    "phantom": "^2.0.10",
     "should": "~4.1.0",
     "uglify-js": "^2.4.17",
     "which": "^1.0.9"

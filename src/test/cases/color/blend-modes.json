@@ -1,0 +1,12 @@
+[
+  "normal",
+  "multiply",
+  "screen",
+  "overlay",
+  "darken",
+  "lighten",
+  "hard-light",
+  "soft-light",
+  "difference",
+  "exclusion"
+]
