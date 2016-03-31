@@ -1,14 +1,33 @@
 Object    = require '../object'
 Boolean   = require './boolean'
 Number    = require './number'
+String    = require './string'
 
 TypeError = require '../error/type'
 
 class Color extends Object
 
-  {max, min} = Math
+  {max, min, abs, sqrt} = Math
 
-  COMPONENTS = ['red', 'green', 'blue', 'alpha']
+  RGB_COMPONENTS = ['red', 'green', 'blue']
+  RGBA_COMPONENTS = RGB_COMPONENTS.concat 'alpha'
+
+  HSL_COMPONENTS = ['hue', 'saturation', 'lightness']
+  HSLA_COMPONENTS = HSL_COMPONENTS.concat 'alpha'
+
+  HSV_COMPONENTS = ['hue', 'saturation', 'value']
+  HSVA_COMPONENTS = HSV_COMPONENTS.concat 'alpha'
+
+  HWB_COMPONENTS = ['hue', 'whiteness', 'blackness']
+  HWBA_COMPONENTS = HWB_COMPONENTS.concat 'alpha'
+
+  ALL_COMPONENTS = [].concat(
+    RGB_COMPONENTS,
+    HSL_COMPONENTS,
+    HSV_COMPONENTS,
+    HWB_COMPONENTS,
+    'alpha'
+  )
 
   # http://git.io/ot_KMg
   # http://stackoverflow.com/questions/2353211/
@@ -62,6 +81,245 @@ class Color extends Object
 
     [r, g, b, a]
 
+  HSL2HWB = (h, s, l , a) -> # TODO
+
+  HWB2HSL = (h, w, b , a) -> # TODO
+
+  RGB2HWB = (r, g, b, a) -> HSL2HWB (RGB2HSL r, g, b, a)...
+
+  HWB2RGB = (h, w, b, a) -> HSL2RGB (HWB2HSL h, w, b, a)...
+
+  @blendSeparate: (source, backdrop, func) ->
+    blent = (
+      func.call @, source[comp], backdrop[comp] for comp in RGB_COMPONENTS
+    )
+
+    blent.push source.alpha * backdrop.alpha
+
+    source.clone blent...
+
+  ###
+  The no-blending mode. This simply selects the source color.
+  ###
+  @blendChannelNormal: (source, backdrop) ->
+    source
+
+  @blendNormal: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelNormal
+
+  ###
+  The source color is multiplied by the backdrop.
+
+  The result color is always at least as dark as either the source or backdrop
+  color. Multiplying any color with black produces black. Multiplying any color
+  with white leaves the color unchanged.
+  ###
+  @blendChannelMultiply: (source, backdrop) ->
+    source * backdrop
+
+  @blendMultiply: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelMultiply
+
+
+  ###
+  Multiplies the complements of the backdrop and source color values, then
+  complements the result.
+
+  The result color is always at least as light as either of the two constituent
+  colors. Screening any color with white produces white; screening with black
+  leaves the original color unchanged. The effect is similar to projecting
+  multiple photographic slides simultaneously onto a single screen.
+  ###
+  @blendChannelScreen: (source, backdrop) ->
+    backdrop + source - backdrop * source
+
+  @blendScreen: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelScreen
+
+  ###
+  Multiplies or screens the colors, depending on the backdrop color value.
+  Source colors overlay the backdrop while preserving its highlights and
+  shadows. The backdrop color is not replaced but is mixed with the source
+  color to reflect the lightness or darkness of the backdrop.
+
+  Overlay is the inverse of the `hard-light` blend mode.
+  ###
+  @blendChannelOverlay: (source, backdrop) ->
+    @blendChannelHardLight backdrop, source
+
+  @blendOverlay: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelOverlay
+
+  ###
+  Selects the darker of the backdrop and source colors.
+
+  The backdrop is replaced with the source where the source is darker;
+  otherwise, it is left unchanged.
+  ###
+  @blendChannelDarken: (source, backdrop) ->
+    if backdrop is 1
+      1
+    else if s is 0
+      0
+    else
+      1 - min 1, (1 - backdrop) / source
+
+      return 1 if b == 1
+    return 0 if s == 0
+    return 1 - min(1, (1 - b) / s)
+
+  @blendDarken: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelDarken
+
+
+  ###
+  Selects the lighter of the backdrop and source colors.
+
+  The backdrop is replaced with the source where the source is lighter;
+  otherwise, it is left unchanged.
+  ###
+  @blendChannelLighten: (source, backdrop) ->
+    max backdrop, source
+
+  @blendLighten: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelLighten
+
+  ###
+  Brightens the backdrop color to reflect the source color. Blending with black
+  produces no changes.
+  ###
+  @blendChannelColorDodge: (source, backdrop) ->
+    if backdrop is 0
+      0
+    else if source is 1
+      1
+    else
+      min 1, b / (1 - source)
+
+  @blendColorDodge: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelColorDodge
+
+  ###
+  Darkens the backdrop color to reflect the source color. Blending with white
+  produces no changes.
+  ###
+  @blendChannelColorBurn: (source, backdrop) ->
+    if backdrop is 1
+      1
+    else if source is 0
+      0
+    else
+      min 1, (1 - b) / s
+
+  @blendColorBurn: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelColorBurn
+
+  ###
+  Multiplies or screens the colors, depending on the source color value. The
+  effect is similar to shining a harsh spotlight on the backdrop.
+  ###
+  @blendChannelHardLight: (source, backdrop) ->
+    if source <= .5
+      @blendChannelMultiply 2 * source, backdrop
+    else
+      @blendChannelScreen 2 * source - 1, backdrop
+
+
+  @blendHardLight: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelHardLight
+
+  ###
+  Darkens or lightens the colors, depending on the source color value. The
+  effect is similar to shining a diffused spotlight on the backdrop
+  ###
+  @blendChannelSoftLight: (source, backdrop) ->
+    if source <= .5
+      backdrop - (1 - 2 * source) * backdrop * (1 - backdrop)
+    else
+      if backdrop < .25
+        d = ((16 * backdrop - 12) * backdrop + 4) * backdrop
+      else
+        d = sqrt backdrop
+
+      backdrop + (2 * source - 1) * (d - backdrop)
+
+  @blendSoftLight: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelSoftLight
+
+  ###
+  Subtracts the darker of the two constituent colors from the lighter color.
+
+  Painting with white inverts the backdrop color; painting with black produces
+  no change.
+  ###
+  @blendChannelDifference: (source, backdrop) ->
+    abs backdrop - source
+
+  @blendDifference: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelDifference
+
+  ###
+  Produces an effect similar to that of the `difference` mode but lower in
+  contrast. Painting with white inverts the backdrop color; painting with black
+  produces no change.
+  ###
+  @blendChannelExclusion: (source, backdrop) ->
+    source + backdrop - 2 * source * backdrop
+
+  @blendExclusion: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelExclusion
+
+  ###
+  Creates a color with the hue of the source color and the saturation and
+  luminosity of the backdrop color.
+  ###
+  @blendHue: (source, backdrop) ->
+    @fromHSLA source.hue, backdrop.saturation, backdrop.lightness
+
+  ###
+  Creates a color with the saturation of the source color and the hue and
+  luminosity of the backdrop color.
+
+  Painting with this mode in an area of the backdrop that is a pure gray (no
+  saturation) produces no change.
+  ###
+  @blendSaturation: (source, backdrop) ->
+    @fromHSLA backdrop.hue, source.saturation, backdrop.lightness
+
+  ###
+  Creates a color with the hue and saturation of the source color and the
+  luminosity of the backdrop color.
+
+  This preserves the gray levels of the backdrop and is useful for coloring
+  monochrome images or tinting color images.
+  ###
+  @blendColor: (source, backdrop) ->
+    @fromHSLA source.hue, source.saturation, backdrop.lightness
+
+  ###
+  Creates a color with the luminosity of the source color and the hue and
+  saturation of the backdrop color. This produces an inverse effect to that of
+  the `color` mode.
+  ###
+  @blendLuminosity: (source, backdrop) ->
+    @fromHSLA backdrop.source, backdrop.saturation, source.lightness
+
+  @blend: (source, backdrop, mode = 'normal') ->
+    method = "blend-#{mode}".replace /(-\w)/g, (m) -> m[1].toUpperCase()
+    @[method] source, backdrop if method of @
+
+  @fromRGBA: (r, g, b, a = null) -> new @ r, g, b, a
+
+  @fromHSLA: (h, s, l, a = null) -> new @ (HSL2RGB h, s, l, a)...
+
+  @fromHWBA: (h, w, b, a = null) -> new @ (HWB2RGB h, w, b, a)...
+
+  @fromHSVA: (h, s, v, a = null) -> new @ (HSV2RGB h, s, v, a)...
+
+  ###
+  ###
+  constructor: (@red = 0, @green = 0, @blue = 0, @alpha = 1) ->
+
   @property 'rgba',
     get: -> [@red, @green, @blue, @alpha]
     set: (rgba) ->
@@ -96,14 +354,33 @@ class Color extends Object
       @hsla = hsla
 
   @property 'hsva',
-    get: ->
-    set: ->
+    get: -> RGB2HSV @rgba...
+    set: -> @rgba = HSV2RGB hsva...
+
+  @property 'value',
+    get: -> @hsva[2]
+    set: (value) ->
+      hsva = @hsva
+      hsva[2] = value
+      @hsva = hsva
 
   @property 'hwba',
-    get: ->
-    set: ->
+    get: -> RGB2HWB @rgba...
+    set: (hwba) -> @rgba = HWB2RGB hwba...
 
-  constructor: (@red = 0, @green = 0, @blue = 0, @alpha = 1) ->
+  @property 'whiteness',
+    get: -> @hwba[1]
+    set: (white) ->
+      hwba = @hwba
+      hwba[1] = white
+      @hwba = hwba
+
+  @property 'blackness',
+    get: -> @hwba[2]
+    set: (black) ->
+      hwba = @hwba
+      hwba[2] = black
+      @hwba = hwba
 
   isEqual: (other) ->
     other instanceof Color and
@@ -114,17 +391,22 @@ class Color extends Object
 
   isEmpty: -> @alpha is 0
 
+  blend: (backdrop, mode) -> @constructor.blend @, backdrop, mode
+
   clone: (red = @red, green = @green, blue = @blue, alpha = @alpha, etc...) ->
     super red, green, blue, alpha, etc...
 
   '.component': (comp) ->
-    unless comp in COMPONENTS
+    unless comp in ALL_COMPONENTS
       throw new Error "Cannot get component #{comp} of color"
 
-    new Number 100 * @[comp], '%'
+    if comp is 'hue'
+      new Number @[comp] * 360, 'deg'
+    else
+      new Number 100 * @[comp], '%'
 
   '.component=': (comp, value) ->
-    unless comp in COMPONENTS
+    unless comp in ALL_COMPONENTS
       throw new Error "Cannot get component #{comp} of color"
 
     if value instanceof Number
@@ -132,18 +414,19 @@ class Color extends Object
         @[comp] = value.value / 100
       else if value.isPure()
         @[comp] = value.value / 255
+      # TODO else if comp is 'hue'...
       else
         throw new Error "Bad #{comp} component value: #{value.repr()}"
 
       @['.component'] comp
 
   '.component?': (comp) ->
-    if comp in COMPONENTS
+    if comp in ALL_COMPONENTS
       Boolean.new @[comp] > 0
     else
       throw new Error "Cannot check component #{comp} of color"
 
-  COMPONENTS.forEach (comp) =>
+  ALL_COMPONENTS.forEach (comp) =>
     @::[".#{comp}"]  = -> @['.component'] comp
     @::[".#{comp}?"] = -> @['.component?'] comp
     @::[".#{comp}="] = (etc...) -> @['.component='] comp, etc...
@@ -155,12 +438,6 @@ class Color extends Object
   '.opaque?': -> Boolean.new @alpha is 1
 
   '.opaque': -> @clone null, null, null, 1
-
-  '.hue': -> new Number @hue * 360, 'deg'
-
-  '.saturation': -> new Number @saturation * 100, '%'
-
-  '.saturation=': (sat) -> @saturation = sat.value / 100
 
   '.saturate': (amount) ->
     unless amount?
@@ -177,7 +454,10 @@ class Color extends Object
 
     that
 
-  '.lightness': -> new Number @lightness * 100, '%'
+  '.desaturate': ->
+    that = @clone()
+    that.saturation = 0
+    that
 
   '.light?': -> Boolean.new @lightness >= .5
 
@@ -188,16 +468,27 @@ class Color extends Object
   '.gray?': @::['.grey?']
 
   # TODO
-  # http://dev.w3.org/csswg/css-color/#hsl-hwb-adjusters
-  '.whiteness': ->
-  '.whiteness=': ->
-  '.blackness': ->
-  '.blackness=': ->
-
-  # TODO
   # http://dev.w3.org/csswg/css-color/#tint-shade-adjusters
   '.tint': ->
+
   '.shade': ->
+
   '.contrast': ->
+
+  '.blend': (backdrop, mode = null) ->
+    if mode isnt null
+      if mode instanceof String
+        mode = mode.value
+      else
+        throw new TypeError (
+          "Bad `mode` argument for [#{@reprType().blend}"
+        )
+
+    unless backdrop instanceof Color
+      throw new TypeError (
+        "Bad `mode` argument for [#{@reprType().blend}"
+      )
+
+    @blend backdrop, mode
 
 module.exports = Color

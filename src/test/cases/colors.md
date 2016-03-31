@@ -1,5 +1,4 @@
-Colors
-======
+# Colors
 
 - Are expressed with hexadecimal notation
 
@@ -622,7 +621,37 @@ Colors
 
 ### `blend`
 
-- Blends two colors
+- Blends a color onto another one
+
+  ~~~ lay
+  #blendmodes {
+    multiply: #f60000.blend(#f60000, multiply)
+    screen: #f60000.blend(#0000f6, screen)
+    overlay: #f60000.blend(#0000f6, overlay)
+    softlight: #f60000.blend(#ffffff, softlight)
+    hardlight: #f60000.blend(#0000f6, hardlight)
+    difference: #f60000.blend(#0000f6, difference)
+    exclusion: #f60000.blend(#0000f6, exclusion)
+    average: #f60000.blend(#0000f6, average)
+    negation: #f60000.blend(#313131, negation)
+  }
+  ~~~
+
+  ~~~ css
+    #blendmodes {
+      multiply: #ed0000;
+      screen: #f600f6;
+      overlay: #ed0000;
+      softlight: #fa0000;
+      hardlight: #0000ed;
+      difference: #f600f6;
+      exclusion: #f600f6;
+      average: #7b007b;
+      negation: #d73131;
+    }
+  ~~~
+
+- Supports multiple modes
 
 ## Operators
 
