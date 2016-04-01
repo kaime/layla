@@ -67,6 +67,13 @@ describe 'Cases', ->
                     throw new Error 'Oops'
                   err_name = node.info
                   err_msg = (stringContent node).trim()
+              when 'List'
+                if desc
+                  it desc, ->
+                    testList node
+                  desc = null
+                else
+                  throw new Error 'Oops'
               else
                 throw new Error 'Oops'
 
@@ -136,7 +143,7 @@ describe 'Cases', ->
             desc = "#{(name.charAt 0).toUpperCase()}#{name.substr 1}"
             describe desc, ->
               testDir file
-          else if st.isFile() and name.match /colors\.md$/
+          else if st.isFile() and name.match /\.md$/
             testFile file
         else
           throw new Error "Could not stat file #{file_path}"

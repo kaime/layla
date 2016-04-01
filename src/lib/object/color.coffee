@@ -10,28 +10,27 @@ class Color extends Object
   {max, min, abs, sqrt} = Math
 
   RGB_COMPONENTS = ['red', 'green', 'blue']
-  RGBA_COMPONENTS = RGB_COMPONENTS.concat 'alpha'
-
   HSL_COMPONENTS = ['hue', 'saturation', 'lightness']
-  HSLA_COMPONENTS = HSL_COMPONENTS.concat 'alpha'
-
   HSV_COMPONENTS = ['hue', 'saturation', 'value']
-  HSVA_COMPONENTS = HSV_COMPONENTS.concat 'alpha'
-
   HWB_COMPONENTS = ['hue', 'whiteness', 'blackness']
-  HWBA_COMPONENTS = HWB_COMPONENTS.concat 'alpha'
+  CMYK_COMPONENTS = ['cyan', 'magenta', 'yellow', 'black']
 
-  ALL_COMPONENTS = [].concat(
+  _ALL_COMPONENTS = [].concat(
     RGB_COMPONENTS,
     HSL_COMPONENTS,
     HSV_COMPONENTS,
     HWB_COMPONENTS,
+    CMYK_COMPONENTS
     'alpha'
   )
 
-  # http://git.io/ot_KMg
-  # http://stackoverflow.com/questions/2353211/
+  # Unique component names
+  COMPONENTS =
+    comp for comp, i in _ALL_COMPONENTS when i is _ALL_COMPONENTS.indexOf comp
+
   RGB2HSL = (r, g, b, a) ->
+    # http://git.io/ot_KMg
+    # http://stackoverflow.com/questions/2353211/
     M = max r, g, b
     m = min r, g, b
     l = (M + m) / 2
@@ -43,7 +42,7 @@ class Color extends Object
       s = if l > .5 then d / (2 - M - m) else d / (M + m)
       h = (switch M
         when r
-          (g - b) / d + if g < b then 6 else 0
+          (g - b) / d + (if g < b then 6 else 0)
         when g
           (b - r) / d + 2
         when b
@@ -76,18 +75,54 @@ class Color extends Object
       q = if l < .5 then l * (1 + s) else l + s - l * s
       p = 2 * l - q
       r = H2RGB p, q, (h + 1 / 3)
-      g = H2RGB p, q, (h)
+      g = H2RGB p, q, h
       b = H2RGB p, q, (h - 1 / 3)
 
     [r, g, b, a]
 
-  HSL2HWB = (h, s, l , a) -> # TODO
+  ###
+  https://drafts.csswg.org/css-color/#cmyk-rgb
+  ###
+  RGB2CMYK = (r, g, b, a) ->
+    if k is 1
+      c = m = y = 0
+    else
+      w = 1 - b
+      c = (1 - r - k) / w
+      m = (1 - g - k) / w
+      m = (1 - b - k) / w
 
-  HWB2HSL = (h, w, b , a) -> # TODO
+    [c, m, y, k, a]
 
-  RGB2HWB = (r, g, b, a) -> HSL2HWB (RGB2HSL r, g, b, a)...
+  ###
+  https://drafts.csswg.org/css-color/#cmyk-rgb
+  ###
+  CMYK2RGB = (c, m, y, k, a) ->
+    w = 1 - k
+    r = 1 - min 1, c * w + k
+    g = 1 - min 1, m * w + k
+    b = 1 - min 1, y * w + k
 
-  HWB2RGB = (h, w, b, a) -> HSL2RGB (HWB2HSL h, w, b, a)...
+    [r, g, b, a]
+
+  ###
+  ###
+  RGB2HWB = (r, g, b, a) ->
+    # https://git.io/vVWUt
+    h = (RGB2HSL r, g, b, a)[0]
+    w = min r, g, b
+    b = 1 - (max r, g, b)
+
+    [h, w, b, a]
+
+  HWB2RGB = (h, w, b, a) ->
+    # http://dev.w3.org/csswg/css-color/#hwb-to-rgb
+    rgba = HSL2RGB h, 1, .5, a
+    rgba.map (c) -> c * (1 - w - b) + w
+
+  HSL2HWB = (h, s, l, a) -> RGB2HWB (HSL2RGB h, s, l, a)...
+
+  HWB2HSL = (h, w, b, a) -> RGB2HSL (HWB2RGB h, w, b, a)...
 
   @blendSeparate: (source, backdrop, func) ->
     blent = (
@@ -306,15 +341,21 @@ class Color extends Object
 
   @blend: (source, backdrop, mode = 'normal') ->
     method = "blend-#{mode}".replace /(-\w)/g, (m) -> m[1].toUpperCase()
-    @[method] source, backdrop if method of @
+
+    if method of @
+      @[method] source, backdrop if method of @
+    else
+      throw new Error "Bad mode for Color.blend: #{mode}"
 
   @fromRGBA: (r, g, b, a = null) -> new @ r, g, b, a
 
   @fromHSLA: (h, s, l, a = null) -> new @ (HSL2RGB h, s, l, a)...
 
+  @fromHSVA: (h, s, v, a = null) -> new @ (HSV2RGB h, s, v, a)...
+
   @fromHWBA: (h, w, b, a = null) -> new @ (HWB2RGB h, w, b, a)...
 
-  @fromHSVA: (h, s, v, a = null) -> new @ (HSV2RGB h, s, v, a)...
+  @fromCMYKA: (h, s, v, a = null) -> new @ (CMYK2RGB c, m, y, k, a)...
 
   ###
   ###
@@ -368,19 +409,39 @@ class Color extends Object
     get: -> RGB2HWB @rgba...
     set: (hwba) -> @rgba = HWB2RGB hwba...
 
-  @property 'whiteness',
-    get: -> @hwba[1]
-    set: (white) ->
-      hwba = @hwba
-      hwba[1] = white
-      @hwba = hwba
+  @property 'cmyka',
+    get: -> RGB2CMYK @rgba...
+    set: (cmyka) -> @rgba = CMYK2RGB cmyka...
 
-  @property 'blackness',
-    get: -> @hwba[2]
-    set: (black) ->
-      hwba = @hwba
-      hwba[2] = black
-      @hwba = hwba
+  @property 'cyan',
+    get: -> @cmyka[0]
+    set: (value) ->
+      cymka = @cmyka
+      cymka[0] = value
+      @cymka = cymka
+
+  @property 'magenta',
+    get: -> @cmyka[1]
+    set: (value) ->
+      cymka = @cmyka
+      cymka[2] = value
+      @cymka = cymka
+
+  @property 'yellow',
+    get: -> @cmyka[2]
+    set: (value) ->
+      cymka = @cmyka
+      cymka[2] = value
+      @cymka = cymka
+
+  # Is this the same as `blackness`?
+  # If not, it will be so confusing.
+  @property 'black',
+    get: -> @cmyka[3]
+    set: (value) ->
+      cymka = @cmyka
+      cymka[3] = value
+      @cymka = cymka
 
   isEqual: (other) ->
     other instanceof Color and
@@ -397,7 +458,7 @@ class Color extends Object
     super red, green, blue, alpha, etc...
 
   '.component': (comp) ->
-    unless comp in ALL_COMPONENTS
+    unless comp in COMPONENTS
       throw new Error "Cannot get component #{comp} of color"
 
     if comp is 'hue'
@@ -406,7 +467,7 @@ class Color extends Object
       new Number 100 * @[comp], '%'
 
   '.component=': (comp, value) ->
-    unless comp in ALL_COMPONENTS
+    unless comp in COMPONENTS
       throw new Error "Cannot get component #{comp} of color"
 
     if value instanceof Number
@@ -421,12 +482,12 @@ class Color extends Object
       @['.component'] comp
 
   '.component?': (comp) ->
-    if comp in ALL_COMPONENTS
+    if comp in COMPONENTS
       Boolean.new @[comp] > 0
     else
       throw new Error "Cannot check component #{comp} of color"
 
-  ALL_COMPONENTS.forEach (comp) =>
+  COMPONENTS.forEach (comp) =>
     @::[".#{comp}"]  = -> @['.component'] comp
     @::[".#{comp}?"] = -> @['.component?'] comp
     @::[".#{comp}="] = (etc...) -> @['.component='] comp, etc...
@@ -448,15 +509,19 @@ class Color extends Object
       amount = amount.value / 100
 
     that = @clone()
-
-    unless amount is 0
-      that.saturation = min 1, (max 0, @saturation * (1 + amount))
-
+    that.saturation = min 1, (max 0, @saturation * (1 + amount))
     that
 
-  '.desaturate': ->
+  '.desaturate': (amount) ->
+    unless amount?
+      amount = 1
+    else
+      unless amount instanceof Number and amount.unit is '%'
+        throw new TypeError "Bad value for Color.saturate"
+      amount = amount.value / 100
+
     that = @clone()
-    that.saturation = 0
+    that.saturation = min 1, (max 0, that.saturation - that.saturation amount)
     that
 
   '.light?': -> Boolean.new @lightness >= .5
