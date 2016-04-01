@@ -89,21 +89,8 @@ function roman(n) {
   return n;
 }
 
-  Number::['.roman'] = ->
-    if not @unit and @value % 1 is 0 and 0 < @value <= 3000
-      val = @value
-      roman = ''
-
-      for i of ROMANS
-        while val >= ROMANS[i]
-          roman += i
-          val -= ROMANS[i]
-      new String roman
-    else
-      throw new TypeError
-
 /**
- * Pairs `blend()` modes with PS ones.
+ * Pairs `Color.blend` modes with PS ones.
  */
 var MODES = {
   'normal':      BlendMode.NORMAL,

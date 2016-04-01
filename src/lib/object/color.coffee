@@ -9,24 +9,24 @@ class Color extends Object
 
   {max, min, abs, sqrt} = Math
 
-  RGB_COMPONENTS = ['red', 'green', 'blue']
-  HSL_COMPONENTS = ['hue', 'saturation', 'lightness']
-  HSV_COMPONENTS = ['hue', 'saturation', 'value']
-  HWB_COMPONENTS = ['hue', 'whiteness', 'blackness']
-  CMYK_COMPONENTS = ['cyan', 'magenta', 'yellow', 'black']
+  RGB_CHANNELS = ['red', 'green', 'blue']
+  HSL_CHANNELS = ['hue', 'saturation', 'lightness']
+  HSV_CHANNELS = ['hue', 'saturation', 'value']
+  HWB_CHANNELS = ['hue', 'whiteness', 'blackness']
+  CMYK_CHANNELS = ['cyan', 'magenta', 'yellow', 'black']
 
-  _ALL_COMPONENTS = [].concat(
-    RGB_COMPONENTS,
-    HSL_COMPONENTS,
-    HSV_COMPONENTS,
-    HWB_COMPONENTS,
-    CMYK_COMPONENTS
+  CHANNELS = [].concat(
+    RGB_CHANNELS,
+    HSL_CHANNELS,
+    HSV_CHANNELS,
+    HWB_CHANNELS,
+    CMYK_CHANNELS
     'alpha'
   )
 
-  # Unique component names
-  COMPONENTS =
-    comp for comp, i in _ALL_COMPONENTS when i is _ALL_COMPONENTS.indexOf comp
+  # Unique channel names
+  CHANNELS =
+    channel for channel, i in CHANNELS when i is CHANNELS.indexOf channel
 
   RGB2HSL = (r, g, b, a) ->
     # http://git.io/ot_KMg
@@ -81,27 +81,45 @@ class Color extends Object
     [r, g, b, a]
 
   ###
+
+  To naively convert from RGBA to CMYK:
+
+  black = 1 - max(red, green, blue)
+  cyan = (1 - red - black) / (1 - black), or 0 if black is 1
+  magenta = (1 - green - black) / (1 - black), or 0 if black is 1
+  yellow = (1 - blue - black) / (1 - black), or 0 if black is 1
+  alpha is the same as the input color
+
   https://drafts.csswg.org/css-color/#cmyk-rgb
   ###
   RGB2CMYK = (r, g, b, a) ->
+    k = 1 - max(r, g, b)
+
     if k is 1
       c = m = y = 0
     else
-      w = 1 - b
+      w = 1 - k
       c = (1 - r - k) / w
       m = (1 - g - k) / w
-      m = (1 - b - k) / w
+      y = (1 - b - k) / w
 
     [c, m, y, k, a]
 
   ###
+  To naively convert from CMYK to RGBA:
+
+  red = 1 - min(1, cyan * (1 - black) + black)
+  green = 1 - min(1, magenta * (1 - black) + black)
+  blue = 1 - min(1, yellow * (1 - black) + black)
+  alpha is same as for input color.
+
   https://drafts.csswg.org/css-color/#cmyk-rgb
   ###
   CMYK2RGB = (c, m, y, k, a) ->
     w = 1 - k
-    r = 1 - min 1, c * w + k
-    g = 1 - min 1, m * w + k
-    b = 1 - min 1, y * w + k
+    r = 1 - min(1, (c * w + k))
+    g = 1 - min(1, (m * w + k))
+    b = 1 - min(1, (y * w + k))
 
     [r, g, b, a]
 
@@ -126,7 +144,7 @@ class Color extends Object
 
   @blendSeparate: (source, backdrop, func) ->
     blent = (
-      func.call @, source[comp], backdrop[comp] for comp in RGB_COMPONENTS
+      func.call @, source[channel], backdrop[channel] for channel in RGB_CHANNELS
     )
 
     blent.push source.alpha * backdrop.alpha
@@ -205,7 +223,6 @@ class Color extends Object
 
   @blendDarken: (source, backdrop) ->
     @blendSeparate source, backdrop, @blendChannelDarken
-
 
   ###
   Selects the lighter of the backdrop and source colors.
@@ -398,6 +415,8 @@ class Color extends Object
     get: -> RGB2HSV @rgba...
     set: -> @rgba = HSV2RGB hsva...
 
+  # Mmm... Is this the same as "brightness"?
+  # http://www.acasystems.com/en/color-picker/faq-hsb-hsv-color.htm
   @property 'value',
     get: -> @hsva[2]
     set: (value) ->
@@ -409,6 +428,20 @@ class Color extends Object
     get: -> RGB2HWB @rgba...
     set: (hwba) -> @rgba = HWB2RGB hwba...
 
+  @property 'blackness',
+    get: -> @hwba[2]
+    set: (value) ->
+      hwba = @hwba
+      hwba[2] = value
+      @hwba = hwba
+
+  @property 'whiteness',
+    get: -> @hwba[1]
+    set: (value) ->
+      hwba = @hwba
+      hwba[1] = value
+      @hwba = hwba
+
   @property 'cmyka',
     get: -> RGB2CMYK @rgba...
     set: (cmyka) -> @rgba = CMYK2RGB cmyka...
@@ -416,32 +449,36 @@ class Color extends Object
   @property 'cyan',
     get: -> @cmyka[0]
     set: (value) ->
-      cymka = @cmyka
-      cymka[0] = value
-      @cymka = cymka
+      cmyka = @cmyka
+      cmyka[0] = value
+      @cmyka = cmyka
 
   @property 'magenta',
     get: -> @cmyka[1]
     set: (value) ->
-      cymka = @cmyka
-      cymka[2] = value
-      @cymka = cymka
+      cmyka = @cmyka
+      cmyka[2] = value
+      @cmyka = cmyka
 
   @property 'yellow',
-    get: -> @cmyka[2]
+    get: ->
+      @cmyka[2]
     set: (value) ->
-      cymka = @cmyka
-      cymka[2] = value
-      @cymka = cymka
+      cmyka = @cmyka
+      cmyka[2] = value
+      @cmyka = cmyka
 
-  # Is this the same as `blackness`?
+  # Isn't this the same as `blackness`?
   # If not, it will be so confusing.
   @property 'black',
     get: -> @cmyka[3]
     set: (value) ->
-      cymka = @cmyka
-      cymka[3] = value
-      @cymka = cymka
+      cmyka = @cmyka
+      cmyka[3] = value
+      @cmyka = cmyka
+
+  @property 'luminance',
+    get: -> .2126 * @red + .7152 * @green + .0722 * @blue
 
   isEqual: (other) ->
     other instanceof Color and
@@ -457,40 +494,41 @@ class Color extends Object
   clone: (red = @red, green = @green, blue = @blue, alpha = @alpha, etc...) ->
     super red, green, blue, alpha, etc...
 
-  '.component': (comp) ->
-    unless comp in COMPONENTS
-      throw new Error "Cannot get component #{comp} of color"
+  '.channel': (channel) ->
+    unless channel in CHANNELS
+      throw new Error "Cannot get channel #{channel} of color"
 
-    if comp is 'hue'
-      new Number @[comp] * 360, 'deg'
+    if channel is 'hue'
+      new Number @[channel] * 360, 'deg'
+    else if channel is 'alpha'
+      new Number @[channel]
     else
-      new Number 100 * @[comp], '%'
+      new Number 100 * @[channel], '%'
 
-  '.component=': (comp, value) ->
-    unless comp in COMPONENTS
-      throw new Error "Cannot get component #{comp} of color"
+  '.channel=': (channel, value) ->
+    unless channel in CHANNELS
+      throw new Error "Cannot get channel #{channel} of color"
 
     if value instanceof Number
       if value.unit is '%'
-        @[comp] = value.value / 100
+        @[channel] = value.value / 100
       else if value.isPure()
-        @[comp] = value.value / 255
-      # TODO else if comp is 'hue'...
+        if channel isnt 'alpha'
+          @[channel] = value.value / 255
+      # TODO else if channel is 'hue'...
       else
-        throw new Error "Bad #{comp} component value: #{value.repr()}"
+        throw new Error "Bad #{channel} channel value: #{value.repr()}"
 
-      @['.component'] comp
-
-  '.component?': (comp) ->
-    if comp in COMPONENTS
-      Boolean.new @[comp] > 0
+  '.channel?': (channel) ->
+    if channel in CHANNELS
+      Boolean.new @[channel] > 0
     else
-      throw new Error "Cannot check component #{comp} of color"
+      throw new Error "Cannot check channel #{channel} of color"
 
-  COMPONENTS.forEach (comp) =>
-    @::[".#{comp}"]  = -> @['.component'] comp
-    @::[".#{comp}?"] = -> @['.component?'] comp
-    @::[".#{comp}="] = (etc...) -> @['.component='] comp, etc...
+  CHANNELS.forEach (channel) =>
+    @::[".#{channel}"]  = -> @['.channel'] channel
+    @::[".#{channel}?"] = -> @['.channel?'] channel
+    @::[".#{channel}="] = (etc...) -> @['.channel='] channel, etc...
 
   '.transparent?': -> Boolean.new @isEmpty()
 
@@ -539,6 +577,13 @@ class Color extends Object
   '.shade': ->
 
   '.contrast': ->
+
+  # https://www.w3.org/TR/WCAG20/#relativeluminancedef
+  '.luminance': ->
+    new Number 100 * @luminance, '%'
+
+  '.luminance?': ->
+    Boolean.new @luminance > 0
 
   '.blend': (backdrop, mode = null) ->
     if mode isnt null
