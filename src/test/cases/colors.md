@@ -611,6 +611,48 @@
 
 ### `saturation?`
 
+### `saturate`
+
+- Returns a relatively saturated copy of the color
+
+  ~~~ lay
+  color.saturate {
+    i: #c33.saturate(40%)
+  }
+  ~~~
+
+  ~~~ css
+  color.saturate {
+    i: #eb1414;
+  }
+  ~~~
+
+- Only accepts a percentage as argument
+
+### `desaturate`
+
+- Returns a relatively desaturated copy of the color
+
+  ~~~ lay
+  color.saturate {
+    i: #c33.desaturate(40%)
+  }
+  ~~~
+
+  ~~~ css
+  color.saturate {
+    i: #ad5252;
+  }
+  ~~~
+
+- When called with no arguments, returns a completely desaturated color
+
+- Only accepts a percentage as argument
+
+### `grey`/`gray`
+
+- Are alias of `desaturate`
+
 ### `lightness`
 
 - Returns the lightness of the color as a percentage
@@ -767,41 +809,26 @@
 
 - Only accepts a percentage as argument
 
-### `saturate`
-
-- Returns a saturated copy of the color
-
-  ~~~ lay
-  color.saturate {
-    i: #c33.saturate(40%)
-  }
-  ~~~
-
-  ~~~ css
-  color.saturate {
-    i: #ff0000;
-  }
-  ~~~
-
-- Only accepts a percentage (or a pure number in the 0..1 range?) as argument
-
-### `desaturate`
-
-- Returns a desaturated copy of the color
-
-- When called with no arguments, returns a completely desaturated color
-
-- Only accepts a percentage (or a pure number in the 0..1 range?) as argument
-
-### `grey`/`gray`
-
-- Are alias of `desaturate`
-
 ### `spin`
 
 - Rotates the hue angle of the color
 
+  ~~~ lay
+  color.spin {
+    i: #bf406a.spin(40)
+    ii: #ff0000.spin(90deg)
+  }
+  ~~~
+
+  ~~~ css
+  color.spin {
+    i: #bf6a40;
+    ii: #80ff00;
+  }
+  ~~~
+
 - Only accepts...
+
 
 ### `whiteness`
 

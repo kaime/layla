@@ -547,7 +547,7 @@ class Color extends Object
       amount = amount.value / 100
 
     that = @clone()
-    that.saturation = min 1, (max 0, @saturation * (1 + amount))
+    that.saturation = min 1, (max 0, that.saturation * (1 + amount))
     that
 
   '.desaturate': (amount) ->
@@ -559,7 +559,7 @@ class Color extends Object
       amount = amount.value / 100
 
     that = @clone()
-    that.saturation = min 1, (max 0, that.saturation - that.saturation amount)
+    that.saturation = min 1, (max 0, that.saturation - that.saturation * amount)
     that
 
   '.light?': -> Boolean.new @lightness >= .5
@@ -569,6 +569,21 @@ class Color extends Object
   '.grey?': -> Boolean.new (@red is @blue and @blue is @green)
 
   '.gray?': @::['.grey?']
+
+  '.spin': (amount) ->
+    unless amount instanceof Number
+      throw new TypeError "Bad value for Color.spin"
+
+    unless amount.isPure()
+      amount = amount.convert('deg')
+
+    that = @clone()
+    hue = that.hue * 360 + amount.value
+    hue = hue % 360
+    hue += 360 if hue < 0
+    hue = hue / 360
+    that.hue = hue
+    that
 
   # TODO
   # http://dev.w3.org/csswg/css-color/#tint-shade-adjusters
