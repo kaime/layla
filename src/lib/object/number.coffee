@@ -164,6 +164,7 @@ class Number extends Object
   ZERO = @ZERO = new @ 0
   TWO  = @TWO  = new @ 2
   TEN  = @TEN  = new @ 10
+  ONE_HUNDRED_PERCENT = @ONE_HUNDRED_PERCENT = new @ 100, '%'
 
   '.+@': -> @clone()
 
