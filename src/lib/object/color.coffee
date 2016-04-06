@@ -1,28 +1,33 @@
 Object  = require '../object'
 Null    = require './null'
 Boolean = require './boolean'
+Number  = require './number'
+String  = require './string'
 
 class Color extends Object
 
-  SPACES =
-    rgb:
-      red:        [0, 255]
-      green:      [0, 255]
-      blue:       [0, 255]
-    hsl:
-      hue:        [0, 360, 'deg']
-      saturation: [0, 100, '%']
-      lightness:  [0, 100, '%']
-    hsv:
-      hue:        [0, 360, 'deg']
-      saturation: [0, 100, '%']
-      value:      [0, 100, '%']
-    hwb:
-      hue:        [0, 360, 'deg']
-      whiteness:  [0, 100, '%']
-      blackness:  [0, 100, '%']
+  RED         = name: 'red', max: 255, unit: null
+  GREEN       = name: 'green', max: 255, unit: null
+  BLUE        = name: 'blue', max: 255, unit: null
+  HUE         = name: 'hue', max: 360, unit: 'deg'
+  SATURATION  = name: 'saturation', max: 100, unit: '%'
+  LIGHTNESS   = name: 'lightness', max: 100, unit: '%'
+  VALUE       = name: 'value', max: 100, unit: '%'
+  WHITENESS   = name: 'whiteness', max: 100, unit: '%'
+  BLACKNESS   = name: 'blackness', max: 100, unit: '%'
+  CYAN        = name: 'cyan', max: 100, unit: '%'
+  MAGENTA     = name: 'magenta', max: 100, unit: '%'
+  YELLOW      = name: 'yellow', max: 100, unit: '%'
+  BLACK       = name: 'black', max: 100, unit: '%'
 
-  RE_HEX_COLOR  = /#([\da-f])+/i
+  SPACES =
+    rgb:  [ RED, GREEN, BLUE ]
+    hsl:  [ HUE, SATURATION, LIGHTNESS ]
+    hsv:  [ HUE, SATURATION, VALUE ]
+    hwb:  [ HUE, WHITENESS, BLACKNESS ]
+    cmyk: [ CYAN, MAGENTA, YELLOW, BLACK ]
+
+  RE_HEX_COLOR  = /#([\da-f]+)/i
   RE_FUNC_COLOR = ///
                   ([a-z_-][a-z\d_-]*)\s*
                   \(\s*
@@ -30,49 +35,396 @@ class Color extends Object
                     (?:\s*,\s*\d[a-z%]*)*)
                   \s*\)///i
 
+  {round, max, min, abs, sqrt} = Math
+
   @rgb2hsl = (rgb) ->
+    r = rgb[0] / 255
+    g = rgb[1] / 255
+    b = rgb[2] / 255
+
+    # http://git.io/ot_KMg
+    # http://stackoverflow.com/questions/2353211/
+    M = max r, g, b
+    m = min r, g, b
+    l = (M + m) / 2
+
+    if m is M
+      h = s = 0 # achromatic
+    else
+      d = M - m
+      s = if l > .5 then d / (2 - M - m) else d / (M + m)
+      h = (switch M
+        when r
+          (g - b) / d + (if g < b then 6 else 0)
+        when g
+          (b - r) / d + 2
+        when b
+          (r - g) / d + 4
+      ) / 6
+
+    [h * 360, s * 100, l * 100]
 
   @rgb2hwb = (rgb) ->
+    # https://git.io/vVWUt
+    h = (@rgb2hsl rgb)[0]
+    w = min rgb...
+    b = 255 - (max rgb...)
 
+    [100 * h / 255, 100 * w / 255, 100 * b / 255]
+
+  ###
+
+  To naively convert from RGBA to CMYK:
+
+  black = 1 - max(red, green, blue)
+  cyan = (1 - red - black) / (1 - black), or 0 if black is 1
+  magenta = (1 - green - black) / (1 - black), or 0 if black is 1
+  yellow = (1 - blue - black) / (1 - black), or 0 if black is 1
+  alpha is the same as the input color
+
+  https://drafts.csswg.org/css-color/#cmyk-rgb
+  ###
   @rgb2cmyk = (rgb) ->
+    r = rgb[0] / 255
+    g = rgb[1] / 255
+    b = rgb[2] / 255
 
-  @cmyk2rgb = (cmyk) ->
+    k = 1 - max r, g, b
 
+    if k is 1
+      c = m = y = 0
+    else
+      w = 1 - k
+      c = (1 - r - k) / w
+      m = (1 - g - k) / w
+      y = (1 - b - k) / w
+
+    [c * 100, m * 100, y * 100, k * 100]
+
+  ###
+  ###
   @hsl2rgb = (hsl) ->
+    s = hsl[1] / 100
+    l = hsl[2] / 100
+
+    if s is 0
+      r = g = b = l # achromatic
+
+    else
+      h = hsl[0] / 360
+      q = if l < .5 then l * (1 + s) else l + s - l * s
+      p = 2 * l - q
+
+      h2rgb = (t) ->
+        if t < 0
+          t++
+        else if t > 1
+          t--
+
+        if t < 1 / 6
+          p + (q - p) * 6 * t
+        else if t < 1 / 2
+          q
+        else if t < 2 / 3
+          p + (q - p) * (2 / 3 - t) * 6
+        else
+          p
+
+      r = h2rgb (h + 1 / 3)
+      g = h2rgb h
+      b = h2rgb (h - 1 / 3)
+
+    [r * 255, g * 255, b * 255]
+
+  ###
+  To naively convert from CMYK to RGBA:
+
+  red = 1 - min(1, cyan * (1 - black) + black)
+  green = 1 - min(1, magenta * (1 - black) + black)
+  blue = 1 - min(1, yellow * (1 - black) + black)
+  alpha is same as for input color.
+
+  https://drafts.csswg.org/css-color/#cmyk-rgb
+  ###
+  @cmyk2rgb = (cmyk) ->
+    c = cmyk[0] / 100
+    m = cmyk[1] / 100
+    y = cmyk[2] / 100
+    k = cmyk[3] / 100
+
+    w = 1 - k
+    r = 1 - min(1, (c * w + k))
+    g = 1 - min(1, (m * w + k))
+    b = 1 - min(1, (y * w + k))
+
+    [r * 255, g * 255, b * 255]
 
   @hwb2rgb = (hwb) ->
 
+  @blendSeparate: (source, backdrop, func) ->
+    blent = (
+      func.call @, source.rgb[i] / 255, backdrop.rgb[i]  / 255 for i of source.rgb
+    )
+
+    blent = blent.map (channel) -> channel * 255
+
+    that = source.clone()
+    that.rgb = blent
+    that.alpha = source.alpha * backdrop.alpha # :(
+    that
+
+  ###
+  The no-blending mode. This simply selects the source color.
+  ###
+  @blendChannelNormal: (source, backdrop) ->
+    source
+
+  @blendNormal: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelNormal
+
+  ###
+  The source color is multiplied by the backdrop.
+
+  The result color is always at least as dark as either the source or backdrop
+  color. Multiplying any color with black produces black. Multiplying any color
+  with white leaves the color unchanged.
+  ###
+  @blendChannelMultiply: (source, backdrop) ->
+    source * backdrop
+
+  @blendMultiply: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelMultiply
+
+
+  ###
+  Multiplies the complements of the backdrop and source color values, then
+  complements the result.
+
+  The result color is always at least as light as either of the two constituent
+  colors. Screening any color with white produces white; screening with black
+  leaves the original color unchanged. The effect is similar to projecting
+  multiple photographic slides simultaneously onto a single screen.
+  ###
+  @blendChannelScreen: (source, backdrop) ->
+    backdrop + source - backdrop * source
+
+  @blendScreen: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelScreen
+
+  ###
+  Multiplies or screens the colors, depending on the backdrop color value.
+  Source colors overlay the backdrop while preserving its highlights and
+  shadows. The backdrop color is not replaced but is mixed with the source
+  color to reflect the lightness or darkness of the backdrop.
+
+  Overlay is the inverse of the `hard-light` blend mode.
+  ###
+  @blendChannelOverlay: (source, backdrop) ->
+    @blendChannelHardLight backdrop, source
+
+  @blendOverlay: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelOverlay
+
+  ###
+  Selects the darker of the backdrop and source colors.
+
+  The backdrop is replaced with the source where the source is darker;
+  otherwise, it is left unchanged.
+  ###
+  @blendChannelDarken: (source, backdrop) ->
+    if backdrop is 1
+      1
+    else if s is 0
+      0
+    else
+      1 - min 1, (1 - backdrop) / source
+
+      return 1 if b == 1
+    return 0 if s == 0
+    return 1 - min(1, (1 - b) / s)
+
+  @blendDarken: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelDarken
+
+  ###
+  Selects the lighter of the backdrop and source colors.
+
+  The backdrop is replaced with the source where the source is lighter;
+  otherwise, it is left unchanged.
+  ###
+  @blendChannelLighten: (source, backdrop) ->
+    max backdrop, source
+
+  @blendLighten: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelLighten
+
+  ###
+  Brightens the backdrop color to reflect the source color. Blending with black
+  produces no changes.
+  ###
+  @blendChannelColorDodge: (source, backdrop) ->
+    if backdrop is 0
+      0
+    else if source is 1
+      1
+    else
+      min 1, b / (1 - source)
+
+  @blendColorDodge: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelColorDodge
+
+  ###
+  Darkens the backdrop color to reflect the source color. Blending with white
+  produces no changes.
+  ###
+  @blendChannelColorBurn: (source, backdrop) ->
+    if backdrop is 1
+      1
+    else if source is 0
+      0
+    else
+      min 1, (1 - b) / s
+
+  @blendColorBurn: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelColorBurn
+
+  ###
+  Multiplies or screens the colors, depending on the source color value. The
+  effect is similar to shining a harsh spotlight on the backdrop.
+  ###
+  @blendChannelHardLight: (source, backdrop) ->
+    if source <= .5
+      @blendChannelMultiply 2 * source, backdrop
+    else
+      @blendChannelScreen 2 * source - 1, backdrop
+
+
+  @blendHardLight: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelHardLight
+
+  ###
+  Darkens or lightens the colors, depending on the source color value. The
+  effect is similar to shining a diffused spotlight on the backdrop
+  ###
+  @blendChannelSoftLight: (source, backdrop) ->
+    if source <= .5
+      backdrop -= (1 - 2 * source) * backdrop * (1 - backdrop)
+    else
+      if backdrop < .25
+        d *= ((16 * backdrop - 12) * backdrop + 4)
+      else
+        d = sqrt backdrop
+
+      backdrop + (2 * source - 1) * (d - backdrop)
+
+  @blendChannelSoftLight: (source, backdrop) ->
+    if source <= .5
+      backdrop - (1 - 2 * source) * backdrop * (1 - backdrop)
+    else
+      if backdrop <= .25
+        d = ((16 * backdrop - 12) * backdrop + 4) * backdrop
+      else
+        d = sqrt backdrop
+
+      backdrop + (2 * source - 1) * (d - backdrop)
+
+  @blendSoftLight: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelSoftLight
+
+  ###
+  Subtracts the darker of the two constituent colors from the lighter color.
+
+  Painting with white inverts the backdrop color; painting with black produces
+  no change.
+  ###
+  @blendChannelDifference: (source, backdrop) ->
+    abs backdrop - source
+
+  @blendDifference: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelDifference
+
+  ###
+  Produces an effect similar to that of the `difference` mode but lower in
+  contrast. Painting with white inverts the backdrop color; painting with black
+  produces no change.
+  ###
+  @blendChannelExclusion: (source, backdrop) ->
+    source + backdrop - 2 * source * backdrop
+
+  @blendExclusion: (source, backdrop) ->
+    @blendSeparate source, backdrop, @blendChannelExclusion
+
+  ###
+  Creates a color with the hue of the source color and the saturation and
+  luminosity of the backdrop color.
+  ###
+  @blendHue: (source, backdrop) ->
+    @fromHSLA source.hue, backdrop.saturation, backdrop.lightness
+
+  ###
+  Creates a color with the saturation of the source color and the hue and
+  luminosity of the backdrop color.
+
+  Painting with this mode in an area of the backdrop that is a pure gray (no
+  saturation) produces no change.
+  ###
+  @blendSaturation: (source, backdrop) ->
+    @fromHSLA backdrop.hue, source.saturation, backdrop.lightness
+
+  ###
+  Creates a color with the hue and saturation of the source color and the
+  luminosity of the backdrop color.
+
+  This preserves the gray levels of the backdrop and is useful for coloring
+  monochrome images or tinting color images.
+  ###
+  @blendColor: (source, backdrop) ->
+    @fromHSLA source.hue, source.saturation, backdrop.lightness
+
+  ###
+  Creates a color with the luminosity of the source color and the hue and
+  saturation of the backdrop color. This produces an inverse effect to that of
+  the `color` mode.
+  ###
+  @blendLuminosity: (source, backdrop) ->
+    @fromHSLA backdrop.source, backdrop.saturation, source.lightness
+
+  @blend: (source, backdrop, mode = 'normal') ->
+    method = "blend-#{mode}".replace /(-\w)/g, (m) -> m[1].toUpperCase()
+
+    if method of @
+      @[method] source, backdrop if method of @
+    else
+      throw new Error "Bad mode for Color.blend: #{mode}"
+
   _parseHexString: (str) ->
     if m = str.match RE_HEX_COLOR
-      hex = m[1]
-      l = hex.length
+      str = m[1]
+      l = str.length
 
       switch l
         when 1
-          red = green = blue = 17 * parseInt hex, 16
+          red = green = blue = 17 * parseInt str, 16
         when 2
-          red = green = blue = parseInt hex, 16
+          red = green = blue = parseInt str, 16
         when 3, 4
-          red   = 17 * parseInt hex[0], 16
-          green = 17 * parseInt hex[1], 16
-          blue  = 17 * parseInt hex[2], 16
+          red   = 17 * parseInt str[0], 16
+          green = 17 * parseInt str[1], 16
+          blue  = 17 * parseInt str[2], 16
           if l > 3
-            @alpha = 17 * parseInt hex[3], 16
+            @alpha = (17 * parseInt str[3], 16) / 255
         when 6, 8
-          red   = parseInt hex[0..1], 16
-          green = parseInt hex[2..3], 16
-          blue  = parseInt hex[4..5], 16
+          red   = parseInt str[0..1], 16
+          green = parseInt str[2..3], 16
+          blue  = parseInt str[4..5], 16
           if l > 6
-            @alpha = parseInt hex[6..7], 16
+            @alpha = (parseInt str[6..7], 16) / 255
         else
-          throw new Error "Bad hex color: #{color}"
+          throw new Error "Bad hex color: #{str}"
 
-      @rgb =
-        red: red
-        green: green
-        blue: blue
+      @space = 'rgb'
 
-      return true
+      return @spaces['rgb'] = [ red, green, blue ]
 
   _parseFuncString: (str) ->
     if m = str.match RE_FUNC_COLOR
@@ -81,14 +433,10 @@ class Color extends Object
 
       # TODO UNITS!
       if space of SPACES
-        channels = {}
+        channels = []
 
-        # TODO I'm trusting the property order of SPACES[space] members
-        # **DO NOT** http://stackoverflow.com/a/5525820
-        for channel of SPACES[space]
-          channels[channel] = args.shift()
-
-        @[space] = channels
+        for channel in SPACES[space]
+          channels.push parseFloat args.shift()
 
         if args.length > 1
           @alpha = args.shift()
@@ -96,7 +444,8 @@ class Color extends Object
         if args.length
           throw new Error "Too many values passed to `#{space()}`"
 
-        return true
+        @space = space
+        return @spaces[space] = channels
 
       else
         throw new Error "Bad color space: #{space}"
@@ -109,76 +458,116 @@ class Color extends Object
     @_parseFuncString(color) or
     throw new Error "Bad color string: #{color}"
 
-  getChannel: (channel, space) ->
-    @spaces[space][channel]
+  do =>
+    make_space_accessors = (space) =>
+      @property space,
+        get: ->
+          unless @spaces[space]
+            if convertor = @constructor["#{@space}2#{space}"]
+              other = @space
 
-  for space of SPACES
-    @property space,
-      get: ->
-        unless @spaces[space]
+            if not convertor
+              for other of @spaces
+                convertor = @constructor["#{other}2#{space}"]
+                break if convertor
+
+            if not convertor
+              throw "No convertor to #{space} :("
+
+            @spaces[space] = convertor.call @constructor, @spaces[other]
+
+          return @spaces[space]
+
+        set: (values) ->
           for other of @spaces
-            convertor = @constructor["#{other}2#{space}".toUpperCase()]
+            if other is space
+              @spaces[other] = values
+              @space = space
+            else
+              @spaces[other] = null
 
-            if convertor
-              @spaces[space] = convertor.call @, other
+    make_channel_accessors = (space, index, name) =>
+      unless name of @::
+        @property name,
+          get: -> @[space][index]
+          set: (value) ->
+            space = @[space]
+            space[index] = value
+            @[space] = space
 
-        return @spaces[space]
+    for space of SPACES
+      make_space_accessors space
 
-      set: (values) ->
-        for other of @spaces
-          if other is space
-            @spaces[other] = values
-            @space = space
-          else
-            @spaces[other] = null
+      for channel, index in SPACES[space]
+        make_channel_accessors space, index, channel.name
 
-    for channel of SPACES[space]
-      @property channel,
-        get: -> @getChannel channel, space
-        set: (value) -> @setChannel channel, value, space
+  getChannel: (space, channel) -> @[space][channel]
 
-  setChannel: (channel, value, space) ->
-    unless channel of SPACE[space]
-      throw new Error "Unknown channel: #{channel}"
+  setChannel: (space, channel, value) ->
+    channels = @[space]
+    channels[channel] = @clampChannel space, channel, value
+    @[space] = channels
 
-    values = @spaces[space]
-
-    # Do not invalidate cached conversions
-    if values[channel] isnt value
-      values[channel] = value
-      @spaces[space] = values
-
-  adjustChannel: (channel, amount, unit, space) ->
-    if space of SPACES
-      if channel of SPACES[space]
-        if unit is '%'
-          @[space][channel] += @[space][channel] * amount
-        else
-          if unit and unit isnt SPACES[space][2]
-            throw new Error ":("
-          value = @[space][channel] + amount
-      else
-        throw new Error "Unknown `#{space}` channel: `#{channel}`"
+  clampChannel: (space, channel, value) ->
+    if SPACES[space][channel].unit is 'deg'
+      value %= 360
+      if value < 0
+        value += 360
     else
-      throw new Error "Unknown space: #{space}"
+      value = min value, SPACES[space][channel].max
+
+    return value
+
+  adjustChannel: (space, channel, amount, unit) ->
+    if unit is '%'
+      amount = SPACES[space][channel].max * amount / 100
+    else if unit and unit isnt SPACES[space][channel].unit
+      throw new Error "Bad value for #{space} #{channel}: #{amount}#{unit}"
+
+    @setChannel space, channel, amount + @getChannel space, channel
 
   # TODO Should I first try with current color space if it's not
   # rgb?
   @property 'luminance',
-    get: -> .2126 * @red + .7152 * @green + .0722 * @blue
+    get: -> .2126 * @red / 255 + .7152 * @green / 255 + .0722 * @blue / 255
 
   blend: (backdrop, mode) -> @constructor.blend @, backdrop, mode
 
   isEqual: (other) ->
-    for channel of @spaces[@space]
-      if @spaces[@space][channel] isnt other.getChannel channel, space
-        return no
+    if other instanceof Color
+      for channel of @spaces[@space]
+        if @spaces[@space][channel] isnt other[@space][channel]
+          return no
 
-    return yes
+      return @alpha is other.alpha
+
+    return no
 
   isEmpty: -> @alpha is 0
 
-  clone: -> # TODO
+  toHexString: ->
+    comps = [].concat @['rgb']
+
+    if @alpha < 1
+      comps.push @alpha * 255
+
+    hex = '#'
+
+    for c in comps
+      c = (round c).toString 16
+      if c.length < 2
+        hex += '0'
+
+      hex += c
+
+    return hex
+
+  toString: ->
+    @toHexString()
+
+  clone: (color = null, etc...) ->
+    color = color or @toString()
+    super color, etc...
 
   '.transparent?': -> Boolean.new @isEmpty()
 
@@ -194,23 +583,43 @@ class Color extends Object
     that.alpha = 1
     that
 
-  '.saturate': (amount) -> # TODO
+  '.saturate': (amount) ->
+    if amount instanceof Number
+      that = @clone()
+      that.adjustChannel 'hsl', 1, amount.value, amount.unit
+      that
+    else
+      throw new TypeError "Bad argument for #{@reprType()}.saturate"
 
-  '.desaturate': (amount = Number.ONE_HUNDRED_PERCENT) -> # TODO
+  '.desaturate': (amount = Number.ONE_HUNDRED_PERCENT) ->
+    if amount instanceof Number
+      that = @clone()
+      that.adjustChannel 'hsl', 1, -1 * amount.value, amount.unit
+      return that
+    else
+      throw new TypeError "Bad argument for #{@reprType()}.saturate"
 
-  '.light?': -> Boolean.new @lightness >= .5
+  '.light?': -> Boolean.new @lightness >= 50
 
-  '.dark?': -> Boolean.new @lightness < .5
+  '.dark?': -> Boolean.new @lightness < 50
 
   '.grey': -> @desaturate()
 
   @::['.gray'] = @::['.grey']
 
-  '.grey?': -> # TODO
+  '.grey?': ->
+    Boolean.new (@red is @blue and @blue is @green)
 
   @::['.gray?'] = @::['.grey?']
 
-  '.spin': (amount) -> # TODO
+  '.spin': (amount) ->
+    if amount instanceof Number
+      amount = amount.convert('deg')
+      that = @clone()
+      that.adjustChannel 'hsl', 0, amount.value, amount.unit
+      that
+    else
+      throw new TypeError "Bad argument for #{@reprType()}.saturate"
 
   @::['.rotate'] = @::['.spin']
 
@@ -233,25 +642,67 @@ class Color extends Object
         mode = mode.value
       else
         throw new TypeError (
-          "Bad `mode` argument for [#{@reprType().blend}"
+          "Bad `mode` argument for [#{@reprType()}.blend]"
         )
 
     unless backdrop instanceof Color
       throw new TypeError (
-        "Bad `mode` argument for [#{@reprType().blend}"
+        "Bad `mode` argument for [#{@reprType()}.blend]"
       )
 
     @blend backdrop, mode
 
   # Individual channel accessors
-  for space of SPACES
-    for channel of SPACES[space]
-      @::[".#{channel}"] = (space = Null.null) ->
-      @::[".#{channel}?"] = (space = Null.null) ->
-      # Looks like I need extra params passed on an assignment,
-      # besides the "value" itself.
-      #     #fff.saturation(hsl) = 50%
-      # Is that *very* wrong?
-      @::[".#{channel}="] = (value, space = Null.null) ->
+  '.alpha': ->
+    new Number @alpha
+
+  '.alpha=': (value) ->
+    if value instanceof Number
+      if value.unit is '%'
+        value = value.value / 100
+      else if value.isPure()
+        value = value.value
+      else
+        throw new Error "Bad alpha value: #{value}"
+
+      value = min 1, (max value, 0)
+      @alpha = value
+    else
+      throw new Error "Bad alpha value: #{value}"
+
+  '.alpha?': ->
+    Boolean.new @alpha > 0
+
+  do =>
+    make_accessors = (space, index, channel) =>
+      name = channel.name
+
+      @::[".#{name}"] ?= ->
+        new Number @[space][index], channel.unit
+
+      @::[".#{name}?"] ?= ->
+        Boolean.new @[space][index] > 0
+
+      @::[".#{name}="] ?= (value) ->
+        if value instanceof Number
+          if value.unit is '%'
+            value = channel.max * value.value / 100
+          else
+            if channel.unit and not value.isPure()
+              value = value.convert channel.unit
+
+            value = @clampChannel space, index, value.value
+
+          channels = @[space]
+          channels[index] = value
+          @[space] = channels
+
+        else
+          throw new Error "Bad #{name} channel value: #{value.repr()}"
+
+    for space of SPACES
+      for channel, index in SPACES[space]
+        make_accessors space, index, channel
+
 
 module.exports = Color

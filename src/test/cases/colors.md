@@ -321,7 +321,7 @@
 
 ### `red`
 
-- Returns the red channel of the color as a percentage
+- Returns the red channel of the color as number between 0..255
 
   ~~~ lay
   color.red {
@@ -331,7 +331,7 @@
 
   ~~~ css
   color.red {
-    red: 100% 0 98.82%;
+    red: 255 0 252;
   }
   ~~~
 
@@ -345,17 +345,17 @@
     b = #000
     c = #fc3ad0
     I: a a.red, b  b.red, c c.red
-    a.red = 50%
+    a.red = 25%
     b.red = 100%
     c.red = 128
-    II: a a.red, b b.red, c c.red
+    II: a a.red.round, b b.red, c c.red
   }
   ~~~
 
   ~~~ css
   color.red {
-    I: #ff000000 100%, #000000 0, #fc3ad0 98.82%;
-    II: #80000000 50%, #ff0000 100%, #803ad0 50.2%;
+    I: #ff000000 255, #000000 0, #fc3ad0 252;
+    II: #40000000 64, #ff0000 255, #803ad0 128;
   }
   ~~~
 
@@ -383,7 +383,7 @@
 
 ### `green`
 
-- Returns the green channel of the color as a percentage
+- Returns the green channel of the color as a number between 0..255
 
   ~~~ lay
   color.green {
@@ -393,7 +393,7 @@
 
   ~~~ css
   color.green {
-    green: 100% 0 22.75%;
+    green: 255 0 58;
   }
   ~~~
 
@@ -407,7 +407,7 @@
   c = #fc3ad0
   color.green {
     I: a a.green, b  b.green, c c.green
-    a.green = 50%
+    a.green = 25%
     b.green = 100%
     c.green = 128
     II: a a.green, b b.green, c c.green
@@ -416,8 +416,8 @@
 
   ~~~ css
   color.green {
-    I: #00ff0000 100%, #000000 0, #fc3ad0 22.75%;
-    II: #00800000 50%, #00ff00 100%, #fc80d0 50.2%;
+    I: #00ff0000 255, #000000 0, #fc3ad0 58;
+    II: #00400000 63.75, #00ff00 255, #fc80d0 128;
   }
   ~~~
 
@@ -445,7 +445,7 @@
 
 ### `blue`
 
-- Returns the blue channel of the color as a percentage
+- Returns the blue channel of the color as a number between 0..255
 
   ~~~ lay
   color.blue {
@@ -455,7 +455,7 @@
 
   ~~~ css
   color.blue {
-    blue: 100% 0 81.57%;
+    blue: 255 0 208;
   }
   ~~~
 
@@ -469,7 +469,7 @@
     b = #000
     c = #fc3ad0
     I: a a.blue, b  b.blue, c c.blue
-    a.blue = 50%
+    a.blue = 25%
     b.blue = 100%
     c.blue = 128
     II: a a.blue, b b.blue, c c.blue
@@ -478,8 +478,8 @@
 
   ~~~ css
   color.blue {
-    I: #0000ff00 100%, #000000 0, #fc3ad0 81.57%;
-    II: #00008000 50%, #0000ff 100%, #fc3a80 50.2%;
+    I: #0000ff00 255, #000000 0, #fc3ad0 208;
+    II: #00004000 63.75, #0000ff 255, #fc3a80 128;
   }
   ~~~
 
@@ -613,17 +613,17 @@
 
 ### `saturate`
 
-- Returns a relatively saturated copy of the color
+- Returns a saturated copy of the color
 
   ~~~ lay
   color.saturate {
-    i: #c33.saturate(40%)
+    i: #29332f.saturate(20%)
   }
   ~~~
 
   ~~~ css
   color.saturate {
-    i: #eb1414;
+    i: #203c31;
   }
   ~~~
 
@@ -634,14 +634,14 @@
 - Returns a relatively desaturated copy of the color
 
   ~~~ lay
-  color.saturate {
-    i: #c33.desaturate(40%)
+  color.desaturate {
+    i: #203c31.desaturate(20%)
   }
   ~~~
 
   ~~~ css
-  color.saturate {
-    i: #ad5252;
+  color.desaturate {
+    i: #29332f;
   }
   ~~~
 
@@ -822,7 +822,7 @@
 
   ~~~ css
   color.spin {
-    i: #bf6a40;
+    i: #bf6b40;
     ii: #80ff00;
   }
   ~~~
@@ -984,25 +984,25 @@
 
   ~~~ lay
   color.is {
-    foo: #000 is #000
-    foo: #000 is #000000
-    foo: #000 isnt red
-    foo: #f02 is #ff0022
-    foo: #f02 is #ff0022ff
-    foo: #f02e isnt #ff0022ff
-    foo: not (#f02 isnt #ff0022)
+    i: #000 is #000
+    ii: #000 is #000000
+    iii: #000 isnt red
+    iv: #f02 is #ff0022
+    vi: #f02 is #ff0022ff
+    vi: #f02e isnt #ff0022ff
+    vii: not (#f02 isnt #ff0022)
   }
   ~~~
 
   ~~~ css
   color.is {
-    foo: true;
-    foo: true;
-    foo: true;
-    foo: true;
-    foo: true;
-    foo: true;
-    foo: true;
+    i: true;
+    ii: true;
+    iii: true;
+    iv: true;
+    vi: true;
+    vi: true;
+    vii: true;
   }
   ~~~
 

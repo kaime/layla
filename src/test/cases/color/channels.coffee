@@ -24,9 +24,7 @@ expected_css = (channel, value) ->
     switch channel
       when 'hue'
         unit = 'deg'
-      when 'red', 'green', 'blue'
-        value = Math.round(100 * value / 255)
-      when 'alpha'
+      when 'red', 'green', 'blue', 'alpha'
         unit = ''
   else
     unit = ''
