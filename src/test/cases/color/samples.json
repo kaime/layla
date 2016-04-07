@@ -1,17 +1,12 @@
 [
-  "white",
-  "gray",
-  "black",
-  "chocolate",
-  "darkkhaki",
-  "salmon",
-  "sienna",
-  "royalblue",
-  "crimson",
-  "cornflowerblue",
-  "#a633da",
-  "#4be5b4",
-  "#2fee48",
-  "#a6ca0e",
-  "#c22be1"
+  "#000",
+  "#fff",
+  "#f00",
+  "#fff",
+  "#0f0",
+  "#00f",
+  "#abc",
+  "#f34cda",
+  "#cfcf54",
+  "#80791a"
 ]

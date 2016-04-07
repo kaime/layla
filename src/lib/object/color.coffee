@@ -161,16 +161,36 @@ class Color extends Object
 
   @hwb2rgb = (hwb) ->
 
-  @blendSeparate: (source, backdrop, func) ->
-    blent = (
-      func.call @, source.rgb[i] / 255, backdrop.rgb[i]  / 255 for i of source.rgb
-    )
+  # "source-over" compositing
+  #
+  # https://www.w3.org/TR/compositing-1/#generalformula   ??????
+  @composite: (source, backdrop) ->
+    salpha = source.alpha
+    balpha = backdrop.alpha
+    srgb = source.rgb
+    brgb = backdrop.rgb
 
-    blent = blent.map (channel) -> channel * 255
+    compositeChannel = (source, backdrop) ->
+      salpha * source + balpha * backdrop * (1 - salpha)
+
+    composited = (
+      compositeChannel srgb[i] / 255, brgb[i] / 255 for i of srgb
+    ).map (channel) -> channel * 255
 
     that = source.clone()
+    that.rgb = composited
+    that.alpha = salpha + balpha * (1 - salpha)
+    that
+
+  @blendSeparate: (source, backdrop, func) ->
+    srgb = source.rgb
+    brgb = backdrop.rgb
+    blent = (
+      func.call @, srgb[i] / 255, brgb[i]  / 255 for i of srgb
+    )
+    blent = blent.map (channel) -> channel * 255
+    that = source.clone()
     that.rgb = blent
-    that.alpha = source.alpha * backdrop.alpha # :(
     that
 
   ###
@@ -220,7 +240,10 @@ class Color extends Object
   Overlay is the inverse of the `hard-light` blend mode.
   ###
   @blendChannelOverlay: (source, backdrop) ->
-    @blendChannelHardLight backdrop, source
+    if source < .5
+      2 * source * backdrop
+    else
+      1 - 2 * (1 - source) * (1 - backdrop)
 
   @blendOverlay: (source, backdrop) ->
     @blendSeparate source, backdrop, @blendChannelOverlay
@@ -232,16 +255,7 @@ class Color extends Object
   otherwise, it is left unchanged.
   ###
   @blendChannelDarken: (source, backdrop) ->
-    if backdrop is 1
-      1
-    else if s is 0
-      0
-    else
-      1 - min 1, (1 - backdrop) / source
-
-      return 1 if b == 1
-    return 0 if s == 0
-    return 1 - min(1, (1 - b) / s)
+    min source, backdrop
 
   @blendDarken: (source, backdrop) ->
     @blendSeparate source, backdrop, @blendChannelDarken
@@ -268,7 +282,7 @@ class Color extends Object
     else if source is 1
       1
     else
-      min 1, b / (1 - source)
+      min 1, backdrop / (1 - source)
 
   @blendColorDodge: (source, backdrop) ->
     @blendSeparate source, backdrop, @blendChannelColorDodge
@@ -283,7 +297,7 @@ class Color extends Object
     else if source is 0
       0
     else
-      min 1, (1 - b) / s
+      min 1, (1 - backdrop) / source
 
   @blendColorBurn: (source, backdrop) ->
     @blendSeparate source, backdrop, @blendChannelColorBurn
@@ -293,11 +307,7 @@ class Color extends Object
   effect is similar to shining a harsh spotlight on the backdrop.
   ###
   @blendChannelHardLight: (source, backdrop) ->
-    if source <= .5
-      @blendChannelMultiply 2 * source, backdrop
-    else
-      @blendChannelScreen 2 * source - 1, backdrop
-
+    @blendChannelOverlay backdrop, source
 
   @blendHardLight: (source, backdrop) ->
     @blendSeparate source, backdrop, @blendChannelHardLight
@@ -305,28 +315,19 @@ class Color extends Object
   ###
   Darkens or lightens the colors, depending on the source color value. The
   effect is similar to shining a diffused spotlight on the backdrop
+
+  https://en.wikipedia.org/wiki/Blend_modes#Soft_Light
   ###
   @blendChannelSoftLight: (source, backdrop) ->
-    if source <= .5
-      backdrop -= (1 - 2 * source) * backdrop * (1 - backdrop)
+    if backdrop <= .5
+      source - (1 - 2 * backdrop) * source * (1 - source)
     else
-      if backdrop < .25
-        d *= ((16 * backdrop - 12) * backdrop + 4)
+      if source <= .25
+        d = ((16 * source - 12) * source + 4) * source
       else
-        d = sqrt backdrop
+        d = sqrt source
 
-      backdrop + (2 * source - 1) * (d - backdrop)
-
-  @blendChannelSoftLight: (source, backdrop) ->
-    if source <= .5
-      backdrop - (1 - 2 * source) * backdrop * (1 - backdrop)
-    else
-      if backdrop <= .25
-        d = ((16 * backdrop - 12) * backdrop + 4) * backdrop
-      else
-        d = sqrt backdrop
-
-      backdrop + (2 * source - 1) * (d - backdrop)
+      source + (2 * backdrop - 1) * (d - source)
 
   @blendSoftLight: (source, backdrop) ->
     @blendSeparate source, backdrop, @blendChannelSoftLight
@@ -359,7 +360,7 @@ class Color extends Object
   luminosity of the backdrop color.
   ###
   @blendHue: (source, backdrop) ->
-    @fromHSLA source.hue, backdrop.saturation, backdrop.lightness
+    source.toHSL source.hue, backdrop.saturation, backdrop.lightness
 
   ###
   Creates a color with the saturation of the source color and the hue and
@@ -369,7 +370,7 @@ class Color extends Object
   saturation) produces no change.
   ###
   @blendSaturation: (source, backdrop) ->
-    @fromHSLA backdrop.hue, source.saturation, backdrop.lightness
+    source.toHSL backdrop.hue, source.saturation, backdrop.lightness
 
   ###
   Creates a color with the hue and saturation of the source color and the
@@ -379,7 +380,7 @@ class Color extends Object
   monochrome images or tinting color images.
   ###
   @blendColor: (source, backdrop) ->
-    @fromHSLA source.hue, source.saturation, backdrop.lightness
+    source.toHSL source.hue, source.saturation, backdrop.lightness
 
   ###
   Creates a color with the luminosity of the source color and the hue and
@@ -387,15 +388,21 @@ class Color extends Object
   the `color` mode.
   ###
   @blendLuminosity: (source, backdrop) ->
-    @fromHSLA backdrop.source, backdrop.saturation, source.lightness
+    source.toHSL backdrop.hue, backdrop.saturation, source.lightness
 
   @blend: (source, backdrop, mode = 'normal') ->
     method = "blend-#{mode}".replace /(-\w)/g, (m) -> m[1].toUpperCase()
 
     if method of @
-      @[method] source, backdrop if method of @
+      blent = @[method] source, backdrop
+      @composite blent, backdrop
     else
       throw new Error "Bad mode for Color.blend: #{mode}"
+
+  toHSL: (hue, saturation, lightness) ->
+    that = @clone()
+    that.hsl = [hue, saturation, lightness]
+    that
 
   _parseHexString: (str) ->
     if m = str.match RE_HEX_COLOR
@@ -463,28 +470,29 @@ class Color extends Object
       @property space,
         get: ->
           unless @spaces[space]
-            if convertor = @constructor["#{@space}2#{space}"]
-              other = @space
+            convertor = null
+
+            unless @space is space
+              if convertor = @constructor["#{@space}2#{space}"]
+                other = @space
 
             if not convertor
               for other of @spaces
-                convertor = @constructor["#{other}2#{space}"]
-                break if convertor
+                unless other in [space, @space]
+                  convertor = @constructor["#{other}2#{space}"]
+                  break if convertor
 
             if not convertor
-              throw "No convertor to #{space} :("
+              throw new Error "No convertor to #{space} :("
 
             @spaces[space] = convertor.call @constructor, @spaces[other]
 
           return @spaces[space]
 
         set: (values) ->
-          for other of @spaces
-            if other is space
-              @spaces[other] = values
-              @space = space
-            else
-              @spaces[other] = null
+          @space = space
+          @spaces = {}
+          @spaces[space] = values
 
     make_channel_accessors = (space, index, name) =>
       unless name of @::
@@ -515,6 +523,7 @@ class Color extends Object
         value += 360
     else
       value = min value, SPACES[space][channel].max
+      value = max value, 0
 
     return value
 
@@ -627,6 +636,12 @@ class Color extends Object
   '.luminance': -> new Number 100 * @luminance, '%'
 
   '.luminance?': -> Boolean.new @luminance > 0
+
+  '.invert': ->
+    that = @clone()
+    rgb = (255 - channel for channel in that.rgb)
+    that.rgb = rgb
+    that
 
   # TODO
   # http://dev.w3.org/csswg/css-color/#tint-shade-adjusters

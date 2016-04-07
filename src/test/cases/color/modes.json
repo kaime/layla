@@ -1,0 +1,18 @@
+[
+  "normal",
+  "multiply",
+  "screen",
+  "overlay",
+  "darken",
+  "lighten",
+  "hard-light",
+  "soft-light",
+  "difference",
+  "exclusion",
+  "hue",
+  "saturation",
+  "color",
+  "luminosity",
+  "color-dodge",
+  "color-burn"
+]

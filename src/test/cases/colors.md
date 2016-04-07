@@ -132,13 +132,13 @@
 
   ~~~ lay
   color.true {
-    foo: #f.true? (#a7 and true) #000.true? #fff0.true? #00000000.true?
+    foo: #f.true? (#a7 and true) (#0000 or true) #000.true? #fff0.true? #00000000.true?
   }
   ~~~
 
   ~~~ css
   color.true {
-    foo: true true true true true;
+    foo: true true #00000000 true true true;
   }
   ~~~
 
@@ -150,23 +150,27 @@
 
   ~~~ lay
   color.transparent {
-    foo: #000.transparent?
-    foo: #0.transparent?
-    foo: #000f.transparent?
-    foo: #0000.transparent?
-    foo: not #000f.transparent?
-    foo: #0000.transparent?
+    i: #000.transparent?
+    ii: #0.transparent?
+    iii: #000f.transparent?
+    iv: #0000.transparent?
+    v: not #000f.transparent?
+    vi: #0000.transparent?
+    vii: #aabbcc01.transparent?
+    viii: #aabbccfe.transparent?
   }
   ~~~
 
   ~~~ css
   color.transparent {
-    foo: false;
-    foo: false;
-    foo: false;
-    foo: true;
-    foo: true;
-    foo: true;
+    i: false;
+    ii: false;
+    iii: false;
+    iv: true;
+    v: true;
+    vi: true;
+    vii: false;
+    viii: false;
   }
   ~~~
 
@@ -216,19 +220,23 @@
 
   ~~~ lay
   color.opaque {
-    foo: #000.opaque?
-    foo: #000d.opaque?
-    foo: #0000.opaque?
-    foo: #000f.opaque?
+    i: #000.opaque?
+    ii: #000d.opaque?
+    iii: #0000.opaque?
+    iv: #000f.opaque?
+    v: #aabbcc01.opaque?
+    vi: #aabbccfe.opaque?
   }
   ~~~
 
   ~~~ css
   color.opaque {
-    foo: true;
-    foo: false;
-    foo: false;
-    foo: true;
+    i: true;
+    ii: false;
+    iii: false;
+    iv: true;
+    v: false;
+    vi: false;
   }
   ~~~
 
@@ -286,7 +294,7 @@
     a.alpha = 100%
     b.alpha = 0%
     c.alpha = 27%
-    d.alpha = 99%
+    d.alpha = .99
 
     II: a a.alpha, b b.alpha, c c.alpha, d d.alpha
   }
@@ -307,15 +315,15 @@
 
   ~~~ lay
   color.alpha {
-    foo: #000.alpha?
-    foo: not #fa76cc.alpha?
+    i: #000.alpha?
+    ii: #fa76cc.alpha?
   }
   ~~~
 
   ~~~ css
   color.alpha {
-    foo: true;
-    foo: false;
+    i: true;
+    ii: true;
   }
   ~~~
 
@@ -470,7 +478,7 @@
     c = #fc3ad0
     I: a a.blue, b  b.blue, c c.blue
     a.blue = 25%
-    b.blue = 100%
+    b.blue = 255
     c.blue = 128
     II: a a.blue, b b.blue, c c.blue
   }
@@ -547,7 +555,7 @@
 
 ### `hue`
 
-- Returns the hue channel of the color in degrees
+- Returns the of the color on the HSL space in degrees
 
   ~~~ lay
   color.hue {
@@ -571,13 +579,13 @@
 
 - Sets the hue of the color
 
-- Only accepts a pure number in the 0..255 range, a percentage or an angle
+- Only accepts a percentage or an angle
 
 ### `hue?`
 
 ### `saturation`
 
-- Returns the saturation channel of the color as a percentage
+- Returns the saturation of the color on the HSL space as a percentage
 
   ~~~ lay
   color.saturation {
@@ -607,7 +615,7 @@
 
 - Sets the saturation of the color
 
-- Only accepts a percentage or a pure number in the 0..255 range
+- Only accepts a percentage
 
 ### `saturation?`
 
@@ -631,17 +639,21 @@
 
 ### `desaturate`
 
-- Returns a relatively desaturated copy of the color
+- Returns a desaturated copy of the color
 
   ~~~ lay
   color.desaturate {
     i: #203c31.desaturate(20%)
+    ii: #203c31.desaturate
+    iii: #203c31.desaturate(100%)
   }
   ~~~
 
   ~~~ css
   color.desaturate {
     i: #29332f;
+    ii: #2e2e2e;
+    iii: #2e2e2e;
   }
   ~~~
 
@@ -655,7 +667,7 @@
 
 ### `lightness`
 
-- Returns the lightness of the color as a percentage
+- Returns the lightness of the color on the HSL space as a percentage
 
   ~~~ lay
   color.lightness {
@@ -829,6 +841,29 @@
 
 - Only accepts...
 
+### `invert`
+
+- Returns the invert color
+
+  ~~~ lay
+  color.invert {
+    i: #437a86.invert
+    ii: #0.invert
+    iii: #f.invert
+    iv: #000d.invert
+    v: #ffff.invert
+  }
+  ~~~
+
+  ~~~ css
+  color.invert {
+    i: #bc8579;
+    ii: #ffffff;
+    iii: #000000;
+    iv: #ffffffdd;
+    v: #000000;
+  }
+  ~~~
 
 ### `whiteness`
 
@@ -954,13 +989,13 @@
 
   ~~~ lay
   color.blend {
-    multiply: #f60000.blend(#f60000, multiply)
-    screen: #f60000.blend(#0000f6, screen)
+    multiply: #f60000.blend(#f60000, 'multiply')
+    screen: #f60000.blend(#0000f6, 'screen')
     overlay: #f60000.blend(#0000f6, 'overlay')
-    soft-light: #f60000.blend(#ffffff, soft-light)
-    hard-light: #f60000.blend(#0000f6, hard-light)
-    difference: #f60000.blend(#0000f6, "difference")
-    exclusion: #f60000.blend(#0000f6, `exclusion`)
+    soft-light: #f60000.blend(#ffffff, 'soft-light')
+    hard-light: #f60000.blend(#0000f6, 'hard-light')
+    difference: #f60000.blend(#0000f6, 'difference')
+    exclusion: #f60000.blend(#0000f6, 'exclusion')
   }
   ~~~
 
