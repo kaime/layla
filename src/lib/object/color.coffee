@@ -107,7 +107,6 @@ class Color extends Object
 
     if s is 0
       r = g = b = l # achromatic
-
     else
       h = hsl[0] / 360
       q = if l < .5 then l * (1 + s) else l + s - l * s
@@ -157,7 +156,17 @@ class Color extends Object
 
     [r * 255, g * 255, b * 255]
 
+  # https://drafts.csswg.org/css-color/#hwb-to-rgb
   @hwb2rgb = (hwb) ->
+    [h, w, b] = hwb
+
+    rgb = @hsl2rgb [h, 100, 50]
+
+    for i in [0..2]
+      rgb[i] *= (1 - w / 100 - b / 100)
+      rgb[i] += 255 * w / 100
+
+    rgb
 
   # "source-over" compositing
   #
@@ -516,9 +525,9 @@ class Color extends Object
 
   clampChannel: (space, channel, value) ->
     if SPACES[space][channel].unit is 'deg'
-      value %= 360
+      value %= SPACES[space][channel].max
       if value < 0
-        value += 360
+        value += SPACES[space][channel].max
     else
       value = min value, SPACES[space][channel].max
       value = max value, 0
@@ -537,6 +546,8 @@ class Color extends Object
   # rgb?
   @property 'luminance',
     get: -> .2126 * @red / 255 + .7152 * @green / 255 + .0722 * @blue / 255
+
+  composite: (backdrop) -> @constructor.composite @, backdrop
 
   blend: (backdrop, mode) -> @constructor.blend @, backdrop, mode
 
@@ -606,6 +617,22 @@ class Color extends Object
     else
       throw new TypeError "Bad argument for #{@reprType()}.saturate"
 
+  '.whiten': (amount = Number.FIFTY_PERCENT) ->
+    if amount instanceof Number
+      that = @clone()
+      that.adjustChannel 'hwb', 1, amount.value, amount.unit
+      that
+    else
+      throw new TypeError "Bad argument for #{@reprType()}.tint"
+
+  '.blacken': (amount = Number.FIFTY_PERCENT) ->
+    if amount instanceof Number
+      that = @clone()
+      that.adjustChannel 'hwb', 2, amount.value, amount.unit
+      that
+    else
+      throw new TypeError "Bad argument for #{@reprType()}.shade"
+
   '.light?': -> Boolean.new @lightness >= 50
 
   '.dark?': -> Boolean.new @lightness < 50
@@ -641,11 +668,16 @@ class Color extends Object
     that.rgb = rgb
     that
 
-  # TODO
   # http://dev.w3.org/csswg/css-color/#tint-shade-adjusters
-  '.tint': (amount) ->
+  '.tint': (amount = Number.FIFTY_PERCENT) ->
+    white = new Color '#fff'
+    white.alpha = amount.value / 100
+    white.composite @
 
-  '.shade': (amount)  ->
+  '.shade': (amount = Number.FIFTY_PERCENT) ->
+    black = new Color '#000'
+    black.alpha = amount.value / 100
+    black.composite @
 
   '.contrast': (another) ->
 

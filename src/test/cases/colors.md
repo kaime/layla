@@ -316,8 +316,6 @@
   }
   ~~~
 
-- Only accepts a percentage as argument
-
 ### `desaturate`
 
 - Returns a desaturated copy of the color
@@ -339,8 +337,6 @@
   ~~~
 
 - When called with no arguments, returns a completely desaturated color
-
-- Only accepts a percentage as argument
 
 ### `grey`/`gray`
 
@@ -462,13 +458,9 @@
 
 - Returns a copy of the color with increased lightness
 
-- Only accepts a percentage as argument
-
 ### `darken`
 
 - Returns a copy of the color with decreased lightnes
-
-- Only accepts a percentage as argument
 
 ### `spin`
 
@@ -487,8 +479,6 @@
     ii: #80ff00;
   }
   ~~~
-
-- Only accepts...
 
 ### `invert`
 
@@ -516,7 +506,50 @@
 
 ### `tint`
 
+- Mixes the color with pure white
+
+  ~~~ lay
+  color.tint {
+    i: #777777.tint(13)
+    ii: #777777.tint(100)
+    iii: #777777.tint(13%)
+    iv: #777777.tint(-13%)
+  }
+  ~~~
+
+  ~~~ css
+  color.tint {
+    i: #898989;
+    ii: #ffffff;
+    iii: #898989;
+    iv: #656565;
+  }
+  ~~~
+
 ### `shade`
+
+- Mixes the color with pure black
+
+  ~~~ lay
+  color.shade {
+    i: #777777.shade(13)
+    ii: #777777.shade(100)
+    iii: #777777.shade(13%)
+    iv: #777777.shade(-13%)
+  }
+  ~~~
+
+  ~~~ css
+  color.shade {
+    i: #686868;
+    ii: #000000;
+    iii: #686868;
+    iv: #868686;
+  }
+  ~~~
+
+### `whiten`
+### `blacken`
 
 ### `contrast`
 
