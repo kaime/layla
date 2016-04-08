@@ -1,7 +1,7 @@
 Phantom  = require 'phantom'
 
 samples = require './samples.json'
-modes = require './modes.json'
+modes = require './blend-modes.json'
 
 page = null
 browser = null

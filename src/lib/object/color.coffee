@@ -12,7 +12,6 @@ class Color extends Object
   HUE         = name: 'hue', max: 360, unit: 'deg'
   SATURATION  = name: 'saturation', max: 100, unit: '%'
   LIGHTNESS   = name: 'lightness', max: 100, unit: '%'
-  VALUE       = name: 'value', max: 100, unit: '%'
   WHITENESS   = name: 'whiteness', max: 100, unit: '%'
   BLACKNESS   = name: 'blackness', max: 100, unit: '%'
   CYAN        = name: 'cyan', max: 100, unit: '%'
@@ -23,7 +22,6 @@ class Color extends Object
   SPACES =
     rgb:  [ RED, GREEN, BLUE ]
     hsl:  [ HUE, SATURATION, LIGHTNESS ]
-    hsv:  [ HUE, SATURATION, VALUE ]
     hwb:  [ HUE, WHITENESS, BLACKNESS ]
     cmyk: [ CYAN, MAGENTA, YELLOW, BLACK ]
 

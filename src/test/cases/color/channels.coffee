@@ -3,6 +3,34 @@ Color = require 'color' # In you we trust
 channels = require './channels.json'
 samples = (require './samples.json').map (sample) -> Color(sample)
 
+ROMANS =
+  m:  1000
+  cm:  900
+  d:   500
+  cd:  400
+  c:   100
+  xc:   90
+  l:    50
+  xl:   40
+  x:    10
+  ix:    9
+  v:     5
+  iv:    4
+  i:     1
+
+romanize = (n) ->
+  if 0 < n <= 3000
+    roman = ''
+
+    for i of ROMANS
+      while n >= ROMANS[i]
+        roman += i
+        n -= ROMANS[i]
+
+    roman
+  else
+    throw new Error
+
 indent = (str) -> str.replace /^(?!\s*$)/mg, '  '
 
 fence = (lang, str) ->
@@ -17,21 +45,35 @@ rule_set = (method, body) ->
   else
     ''
 
-expected_css = (channel, value) ->
-  if value > 0
-    unit = '%'
+normalize_value = (channel, value) ->
+  norm = parseFloat value
 
+  if value[value.length - 1] is '%'
+    switch channel
+      when 'hue'
+        norm = 360 * norm / 100
+      when 'red', 'green', 'blue'
+        norm = 255 * norm / 100
+      when 'alpha'
+        norm /= 100
+
+  return norm
+
+expected_css = (channel, value) ->
+  unit = ''
+
+  if value > 0
     switch channel
       when 'hue'
         unit = 'deg'
       when 'red', 'green', 'blue', 'alpha'
         unit = ''
-  else
-    unit = ''
+      else
+        unit = '%'
 
   "#{value}#{unit}"
 
-md = ''
+md = "# Color\n"
 
 for channel in channels
   # Getter
@@ -40,10 +82,15 @@ for channel in channels
 
   lay = css = ''
 
-  for sample in samples
+  round = if channel is 'alpha' then '.round(2)' else '.round'
+
+  for sample, i in samples
     actual = expected_css channel, sample[channel]()
-    lay += "color: #{sample.hexString()}.#{channel}.round\n"
-    css += "color: #{actual};\n"
+    r = romanize i + 1
+    lay += "#{r}: #{sample.hexString().toLowerCase()}.#{channel}#{round}"
+    lay += "\n"
+
+    css += "#{r}: #{actual};\n"
 
   md += indent (
     (fence 'lay', rule_set channel, lay) +
@@ -52,10 +99,18 @@ for channel in channels
 
   # ?
   md += "### `#{channel}?`\n\n"
-  md += "- Returns `true` if the color has any #{channel}\
-         (ie: its `#{channel}` value is > 0)\n\n"
+  md += "- Returns `true` if the color has any #{channel} \
+         (ie: its `#{channel}` is > 0)\n\n"
 
   lay = css = ''
+
+  for sample, i in samples
+    actual = if (sample[channel]()) > 0 then 'true' else 'false'
+    r = romanize i + 1
+    lay += "#{r}: #{sample.hexString().toLowerCase()}.#{channel}?"
+    lay += "\n"
+
+    css += "#{r}: #{actual};\n"
 
   md += indent (
     (fence 'lay', rule_set channel, lay) +
@@ -69,25 +124,42 @@ for channel in channels
   switch channel
     when 'red', 'green', 'blue'
       values = ['0', '127.50', '255', '100%', '33.33%']
-    when 'cyan', 'magenta', 'yellow', 'black', 'blackness', 'whiteness'
+    when 'cyan', 'magenta', 'yellow', 'black', \
+         'blackness', 'whiteness', 'saturation', 'lightness', 'value'
       values = ['0', '0%', '17.98%', '100%']
     when 'alpha'
       values = ['0', '.1', '99%', '100%', '1']
+    when 'hue'
+      values = ['0', '90', '360', '736']
     else
       continue
 
   lay = css = ''
 
+  p = 0
+
   for sample, i in samples
+    copy = sample.clone()
 
-    name = "$color_#{i}"
-    lay += "#{name} = #{sample.hexString()}\n"
+    lay += "\n" if i > 0
 
-    for value in values
-      lay += "#{name}.#{channel} = #{value}\n"
-      lay += "#{channel}: #{name}.#{channel};\n"
-      actual = expected_css channel, sample[channel]()
-      css += "#{channel}: #{expected_css channel, actual};\n"
+    var_name = romanize i + 1
+    lay += "$#{var_name} = #{sample.hexString()}\n"
+
+    for value, j in values
+      p++
+
+      lay += "\n" if j > 0
+
+      prop_name = romanize p
+
+      lay += "$#{var_name}.#{channel} = #{value}\n"
+      lay += "#{prop_name}: $#{var_name}.#{channel}#{round}\n"
+
+      copy[channel](normalize_value channel, value)
+      actual = copy[channel]()
+
+      css += "#{prop_name}: #{expected_css channel, actual};\n"
 
   md += indent (
     (fence 'lay', rule_set channel, lay) +

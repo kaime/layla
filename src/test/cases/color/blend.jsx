@@ -52,12 +52,32 @@ if (!Array.prototype.map) {
 }
 
 /**
+ * Parses a JSON string.
+ */
+function parseJSON(json) {
+  return eval('(' + json + ')');
+}
+
+/**
+ * Reads and parses a JSON file.
+ */
+function readJSON(path) {
+  var file = File(whereAmI() + path);
+
+  if (file.exists) {
+    file.open('r');
+    var json = file.read();
+    file.close();
+    return parseJSON(json);
+  }
+}
+
+/**
  * This tells the path of this script.
  *
  * From http://www.ps-scripts.com/bb/viewtopic.php?f=2&t=3446
  */
 function whereAmI() {
-
   var where;
 
   try {
@@ -68,8 +88,6 @@ function whereAmI() {
 
   return where;
 }
-
-
 
 var ROMANS = {
     M:  1000,
@@ -86,15 +104,27 @@ var ROMANS = {
     IV:    4,
     I:     1
   }
+function romanize(n) {
+  if (n > 0 && n <= 3000) {
+    var roman = '';
 
-function roman(n) {
-  return n;
+    for (var k in ROMANS) {
+      while (n >= ROMANS[k]) {
+        roman += k;
+        n -= ROMANS[k]
+      }
+    }
+
+    return roman.toLowerCase();
+  }
+
+  throw new Error("Cannnot romanize " + n);
 }
 
 /**
  * Pairs `Color.blend` modes with PS ones.
  */
-var MODES = {
+var PS_BLEND_MODES = {
   'normal':      BlendMode.NORMAL,
   'multiply':    BlendMode.MULTIPLY,
   'screen':      BlendMode.SCREEN,
@@ -349,49 +379,12 @@ CSSColor.parseNamed = function(color) {
 }
 
 /**
- * Parses a `grey()` color.
- */
-CSSColor.parseGrey = (function() {
-
-  var regGrey = /^\s*gr[ea]y\s*\(([0-9\.]+)(%?)\s*(?:,([0-9\.]+)(%?))?\s*\)\s*$/i
-
-  return function(color) {
-
-    var m = color.match(regGrey);
-
-    if (m) {
-
-      var g = parseFloat(m[1]);
-
-      if (m[2] === '%') {
-        g /= 100;
-      }
-
-      g = 1 - g;
-
-      var alpha = 1;
-
-      if (typeof m[3] !== 'undefined') {
-        alpha = parseFloat(m[3]);
-
-        if (m[4] === '%') {
-          alpha /= 100;
-        }
-      }
-
-      return new CSSColor(
-        g * 255, g * 255, g * 255, alpha
-      );
-    }
-  }
-
-})();
-
-/**
  * Parses a named, rgb(a) or hexadecimal CSS color.
  */
 CSSColor.parse = function(color) {
-  return CSSColor.parseNamed(color) || CSSColor.parseGrey(color) || CSSColor.parseRGBA(color) || CSSColor.parseHex(color);
+  return CSSColor.parseNamed(color) ||
+         CSSColor.parseRGBA(color) ||
+         CSSColor.parseHex(color);
 }
 
 /**
@@ -443,40 +436,12 @@ CSSColor.prototype.toString = function() {
     }
   );
 
-  for (var i = 0; i < 3; i++) {
-    if (hex[i].charAt(0) !== hex[i].charAt(1)) {
-      // Long #XXXXXX form
-      return '#' + hex[0] + hex[1] + hex[2];
-    }
-  }
-
-  // Abbreviated #XXX form
-  return '#' + hex[0].charAt(0) + hex[1].charAt(0) + hex[2].charAt(0);
-}
-
-/**
- * Parses a JSON string.
- */
-function parseJSON(json) {
-  return eval('(' + json + ')');
-}
-
-/**
- * Reads and parses a JSON file.
- */
-function readJSON(path) {
-  var file = File(whereAmI() + path);
-
-  if (file.exists) {
-    file.open('r');
-    var json = file.read();
-    file.close();
-    return parseJSON(json);
-  }
+  return '#' + hex[0] + hex[1] + hex[2];
 }
 
 // Read samples from JSON file.
-var samples = readJSON('./samples.json');
+var samples = readJSON('./samples.json'),
+    modes = readJSON('./blend-modes.json');
 
 // Actual Layla code.
 var code = [];
@@ -492,13 +457,14 @@ preferences.rulerUnits = Units.PIXELS;
 app.displayDialogs = DialogModes.NO;
 
 // Create the doc. We only need 1px.
-var doc = app.documents.add(1, 1);
-//doc.bitsPerChannel = BitsPerChannelType.EIGHT;
+var doc = app.documents.add(100, 100);
+
+doc.bitsPerChannel = BitsPerChannelType.EIGHT;
 //doc.bitsPerChannel = BitsPerChannelType.SIXTEEN;
-doc.bitsPerChannel = BitsPerChannelType.THIRTYTWO;
+//doc.bitsPerChannel = BitsPerChannelType.THIRTYTWO;
 
 // Add a color sampler to query result color
-var sampler = doc.colorSamplers.add([0, 0]);
+var sampler = doc.colorSamplers.add([50, 50]);
 
 // "Backdrop" layer.
 var backdropLayer = doc.backgroundLayer;
@@ -512,87 +478,99 @@ doc.selection.selectAll();
 // Blend each color with each other.
 var mode, i, r, j, l = samples.length, source, result, lay, css;
 
-for (mode in MODES) {
+for (var m = 0, ml = modes.length; m < ml; m++) {
+  mode = modes[m];
 
-  try {
-
-    // This blend mode could not be available in working color mode
-    sourceLayer.blendMode = MODES[mode];
-
-    // This is the Layla code
-    lay = [];
-
-    // This is the (expected) CSS code
-    css = [];
-
-    for (i = 0; i < l; i++) {
-
-      // The backdrop color.
-      backdrop = CSSColor.parse(samples[i]);
-
-      // Apply to backdrop layer.
-      doc.activeLayer = backdropLayer;
-      doc.selection.fill(backdrop.toPS());
-
-      for (j = 0; j < l; j++) {
-
-        try {
-          // The source color.
-          source = CSSColor.parse(samples[j]);
-
-          // Apply to source layer.
-          doc.activeLayer = sourceLayer;
-          doc.selection.fill(source.toPS());
-          sourceLayer.opacity = source.alpha * 100;
-
-          // Collect computed result.
-          result = CSSColor.fromPS(sampler.color);
-
-        } catch (e) {
-          continue;
-        }
-
-        r = roman(i);
-
-        // Append to Layla code.
-        lay.push(
-          r + ': ' + samples[j] +
-          "blend('" + samples[i] + "', " + mode + ')'
-        );
-
-        // Append to expected CSS code
-        css.push(
-          r + ': ' + result + ';'
-        );
-      }
-    }
-
-  } catch (e) {
+  if (!(mode in PS_BLEND_MODES)) {
     continue;
   }
 
-  function indent(lines) {
-    return lines.map(function(line) {
-      return '  ' + line;
-    });
+  // This blend mode could not be available in working color mode
+  sourceLayer.blendMode = PS_BLEND_MODES[mode];
+
+  // This is the Layla code
+  lay = [];
+
+  // This is the (expected) CSS code
+  css = [];
+
+  for (i = 0; i < l; i++) {
+
+    // The backdrop color.
+    backdrop = CSSColor.parse(samples[i]);
+
+    // Apply to backdrop layer.
+    doc.activeLayer = backdropLayer;
+    doc.selection.fill(backdrop.toPS());
+
+    for (j = 0; j < l; j++) {
+
+      // The source color.
+      source = CSSColor.parse(samples[j]);
+
+      // Apply to source layer.
+      doc.activeLayer = sourceLayer;
+      doc.selection.fill(source.toPS());
+      sourceLayer.opacity = source.alpha * 100;
+
+      // Collect computed result.
+      result = CSSColor.fromPS(sampler.color);
+
+      r = romanize(i * l + j + 1);
+
+      // Append to Layla code.
+      lay.push(
+        r + ': ' + samples[j] +
+        ".blend(" + samples[i] + ", '" + mode + "')"
+      );
+
+      // Append to expected CSS code
+      css.push(
+        r + ': ' + result + ';'
+      );
+    }
   }
 
+
+  function indent(lines) {
+    var out = [];
+
+    for (var lines, i = 0, l = arguments.length; i < l; i++) {
+      lines = [].concat(arguments[0]);
+
+      out = out.concat(lines.map(function(line) {
+        return '  ' + line;
+      }));
+    }
+
+    return out;
+  }
+
+  selector = "color.blend[" + mode + "] {";
+
   code = code.concat(
-    ['- `' + mode + '`'],
-    ['', '  ~~~ lay'],
-    indent(lay),
-    ['', '  ~~~']
-    ['', '  ~~~ css'],
-    indent(css),
-    ['', '  ~~~', '', '']
+    '- `' + mode + '`',
+    '',
+    indent('~~~ lay'),
+    indent(selector),
+    indent(indent(lay)),
+    indent('}'),
+    indent('~~~'),
+    '',
+    indent('~~~ css'),
+    indent(selector),
+    indent(indent(css)),
+    indent('}'),
+    indent('~~~'),
+    ''
   );
 }
 
-// Almost done. Restore preferences now.
+// Almost done. Silently close document
 app.preferences.rulerUnits = oldSettings.rulerUnits;
 app.displayDialogs = oldSettings.displayDialogs;
 
-// And silently close document.
+// Restore preferences
 doc.close(SaveOptions.DONOTSAVECHANGES);
 
 // Open save dialog and write code if not cancelled
