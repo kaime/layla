@@ -1,3 +1,5 @@
+#target photoshop
+
 /**
  * This PS script automatically creates the test cases for `Color.blend` based
  * on *actual Photoshop results*. It:
@@ -18,7 +20,7 @@
 
 /**
  * `Array.prototype.map` polyfill.
- * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map
+ * https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Array/map
  */
 if (!Array.prototype.map) {
 
