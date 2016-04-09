@@ -7,13 +7,10 @@ class Null extends Object
 
   @new: -> @null
 
-  toString: -> ''
+  @ifNull: (value) ->
+    if not value? or (value instanceof @) then @null else value
 
-  ifNull: (value) ->
-    if (value is null) or (value instanceof Null)
-      Null.null
-    else
-      value
+  toString: -> ''
 
   isEqual: (other) -> other.isNull()
 

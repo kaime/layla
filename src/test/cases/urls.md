@@ -41,7 +41,7 @@ URLs
   }
   ~~~
 
-- Can be unquoted
+- Do not need to be quoted
 
   ~~~ lay
   body {
@@ -196,7 +196,7 @@ URLs
   #foo {
     bar: 'http';
     bar: null;
-    bar: file;
+    bar: "file";
   }
   ~~~
 
@@ -215,8 +215,6 @@ URLs
   foo: url('http://www.disney.com:8080/movies/?id=245#characters');
   foo: url('https://www.disney.com:8080/movies/?id=245#characters');
   ~~~
-
-- Fails for invalid schemes
 
 - Accepts `null`, and makes it a scheme-less URL
 
@@ -246,7 +244,7 @@ URLs
   #foo {
     bar: 'ftp';
     bar: null;
-    bar: mailto;
+    bar: "mailto";
   }
   ~~~
 
@@ -265,122 +263,6 @@ URLs
   ~~~ css
   foo: url(gopher://disney.com/);
   foo: url(//disney.com/);
-  ~~~
-
-### `host`
-
-- Returns the `//host` part of the URL, if any, or `null`
-
-  ~~~ lay
-  #foo {
-    bar: url('http://disney.com').host
-    bar: url(//disney.com).host
-    bar: url(//127.0.0.1/pr0n/7281.jpg).host
-  }
-  ~~~
-
-  ~~~ css
-  #foo {
-    bar: 'disney.com';
-    bar: disney.com;
-    bar: 127.0.0.1;
-  }
-  ~~~
-
-### `host=`
-
-- Sets the `//host` part of the URL
-
-  ~~~ lay
-  $url = url('http://www.disney.com/')
-  $url.host = 'disney.org'
-  foo: $url
-  ~~~
-
-  ~~~ css
-  foo: url('http://disney.org/');
-  ~~~
-
-- Accepts TLD's
-
-  ~~~ lay
-  $url = url('http://localhost/phpMyAdmin')
-  foo: $url
-  $url.host = com
-  foo: $url
-  ~~~
-
-  ~~~ css
-  foo: url('http://localhost/phpMyAdmin');
-  foo: url('http://com/phpMyAdmin');
-  ~~~
-
-- Accepts IP addresses
-
-  ~~~ lay
-  $url = url('http://www.disney.com/pixar')
-  $url.host = '192.168.1.1'
-  foo: $url
-  ~~~
-
-  ~~~ css
-  foo: url('http://192.168.1.1/pixar');
-  ~~~
-
-- Accepts IPv6 addresses
-
-  ~~~ lay-TODO
-  $url = url('http://www.disney.com/pixar')
-  $url.host = '[2001:0db8:85a3:08d3:1319:8a2e:0370:7334]'
-  foo: $url
-  $url.host = '[2001:0DB8::1428:57ab]'
-  foo: $url
-  ~~~
-
-  ~~~ css-TODO
-  foo: url('http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7334]/pixar');
-  foo: url('http://[2001:0DB8::1428:57ab]/pixar');
-  ~~~
-
-- Fails for invalid hosts
-
-- Accepts `null` and empty string
-
-  ~~~ lay
-  $url = url('http://www.disney.com:8080/movies/')
-  foo: $url
-  $url.host = ''
-  foo: $url
-  $url.host = null
-  foo: $url
-  ~~~
-
-  ~~~ css
-  foo: url('http://www.disney.com:8080/movies/');
-  foo: url('/movies/');
-  foo: url('/movies/');
-  ~~~
-
-### `domain`
-
-- Returns the hostname, without `www.`
-
-  ~~~ lay
-  url.domain {
-    i: url('http://www.disney.com').domain
-    ii: url(http://disney.com).domain
-    iii: url(//www.disney.com).domain
-    iv: url("//disney.com").domain
-  }
-  ~~~
-
-  ~~~ css
-  url.domain {
-    i: 'disney.com';
-    ii: disney.com;
-    iii: disney.com;
-    iv: "disney.com";
-  }
   ~~~
 
 ### `http?`
@@ -475,6 +357,200 @@ URLs
   foo: url('https://disney.es/index.aspx');
   ~~~
 
+
+### `host`
+
+- Returns the `//host` part of the URL, if any, or `null`
+
+  ~~~ lay
+  #foo {
+    bar: url('http://disney.com').host
+    bar: url(//disney.com).host
+    bar: url(//127.0.0.1/pr0n/7281.jpg).host
+  }
+  ~~~
+
+  ~~~ css
+  #foo {
+    bar: 'disney.com';
+    bar: "disney.com";
+    bar: "127.0.0.1";
+  }
+  ~~~
+
+### `host=`
+
+- Sets the `//host` part of the URL
+
+  ~~~ lay
+  $url = url('http://www.disney.com/')
+  $url.host = 'disney.org'
+  foo: $url
+  ~~~
+
+  ~~~ css
+  foo: url('http://disney.org/');
+  ~~~
+
+- Accepts TLD's
+
+  ~~~ lay
+  $url = url('http://localhost/phpMyAdmin')
+  foo: $url
+  $url.host = com
+  foo: $url
+  ~~~
+
+  ~~~ css
+  foo: url('http://localhost/phpMyAdmin');
+  foo: url('http://com/phpMyAdmin');
+  ~~~
+
+- Accepts IP addresses
+
+  ~~~ lay
+  $url = url('http://www.disney.com/pixar')
+  $url.host = '192.168.1.1'
+  foo: $url
+  ~~~
+
+  ~~~ css
+  foo: url('http://192.168.1.1/pixar');
+  ~~~
+
+- Accepts IPv6 addresses
+
+  ~~~ lay
+  url[ipv6] {
+    $url = url('http://www.disney.com/pixar')
+    $url.host = '[2001:0db8:85a3:08d3:1319:8a2e:0370:7334]'
+    i: $url
+    $url.port = 21
+    ii: $url
+
+    $url.host = '[2001:0DB8::1428:57ab]'
+    iii: $url
+
+    $url = url(http://user:password@[3ffe:2a00:100:7031::1]:8080) +
+           '/articles/index.html'
+    iv: $url
+    $url.port = null
+    v: $url
+  }
+  ~~~
+
+  ~~~ css
+  url[ipv6] {
+    i: url('http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7334]/pixar');
+    ii: url('http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7334]:21/pixar');
+    iii: url('http://[2001:0db8::1428:57ab]:21/pixar');
+    iv: url(http://user:password@[3ffe:2a00:100:7031::1]:8080/articles/index.html);
+    v: url(http://user:password@[3ffe:2a00:100:7031::1]/articles/index.html);
+  }
+  ~~~
+
+- Fails for invalid hosts
+
+- Accepts `null` and empty string
+
+  ~~~ lay
+  $url = url('http://www.disney.com:8080/movies/')
+  foo: $url
+  $url.host = ''
+  foo: $url
+  $url.host = null
+  foo: $url
+  ~~~
+
+  ~~~ css
+  foo: url('http://www.disney.com:8080/movies/');
+  foo: url('/movies/');
+  foo: url('/movies/');
+  ~~~
+
+### `domain`
+
+- Returns the hostname, without `www.`
+
+  ~~~ lay
+  url.domain {
+    i: url('http://www.disney.com').domain
+    ii: url(http://disney.com).domain
+    iii: url(//www.disney.com).domain
+    iv: url("//disney.com").domain
+  }
+  ~~~
+
+  ~~~ css
+  url.domain {
+    i: 'disney.com';
+    ii: "disney.com";
+    iii: "disney.com";
+    iv: "disney.com";
+  }
+  ~~~
+
+### `ip?`
+
+- Returns true if the host is a valid v4 or v6 IP address
+
+  ~~~ lay
+  url.ip {
+    i: url('http://192.168.1.1/pixar').ip?
+    ii: url(http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7334]/pixar).ip?
+    iii: url('http://www.disney.com/pixar').ip?
+  }
+  ~~~
+
+  ~~~ css
+  url.ip {
+    i: true;
+    ii: true;
+    iii: false;
+  }
+  ~~~
+
+
+### `ipv4?`
+
+- Returns true if the host is a valid IPv4 address
+
+  ~~~ lay
+  url.ipv4 {
+    i: url('http://192.168.1.1/pixar').ipv4?
+    ii: url(http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7334]/pixar).ipv4?
+    iii: url('http://www.disney.com/pixar').ipv4?
+  }
+  ~~~
+
+  ~~~ css
+  url.ipv4 {
+    i: true;
+    ii: false;
+    iii: false;
+  }
+  ~~~
+
+### `ipv6?`
+
+- Returns true if the host is a valid IPv6 address
+
+  ~~~ lay
+  url.ipv6 {
+    i: url('http://192.168.1.1/pixar').ipv6?
+    ii: url(http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7334]/pixar).ipv6?
+    iii: url('http://www.disney.com/pixar').ipv6?
+  }
+  ~~~
+
+  ~~~ css
+  url.ipv6 {
+    i: false;
+    ii: true;
+    iii: false;
+  }
+  ~~~
+
 ### `port`
 
 - Returns the `:port` part of the URL, if any, or `null`
@@ -489,7 +565,7 @@ URLs
   ~~~ css
   #foo {
     bar: null;
-    bar: 8080;
+    bar: "8080";
   }
   ~~~
 
@@ -586,6 +662,26 @@ URLs
   foo: url('http://disney.com/');
   ~~~
 
+### `path`
+
+### `path=`
+
+### `dirname`
+
+### `dirname=`
+
+### `basename`
+
+### `basename=`
+
+### `extname`
+
+### `extname=`
+
+### `filename`
+
+### `filename=`
+
 ### `query`
 
 - Returns the `?query` part of the URL if any, or `null`
@@ -600,7 +696,7 @@ URLs
   ~~~ css
   a: null;
   b: "";
-  c: q=google;
+  c: "q=google";
   d: "q=google";
   ~~~
 
@@ -619,7 +715,7 @@ URLs
   foo: url(http://google.com/?hey=Joe);
   ~~~
 
-- Gets properly encoded
+- Is properly encoded
 
 - Accepts `null` and empty string
 
@@ -652,7 +748,7 @@ URLs
 
   ~~~ css
   #foo {
-    bar: start;
+    bar: "start";
     bar: '';
     bar: null;
   }
@@ -672,7 +768,7 @@ URLs
   foo: url('http://disney.com/#footer');
   ~~~
 
-- Gets properly encoded
+- Is properly encoded
 
 - Accepts `null` and empty string
 
@@ -705,7 +801,7 @@ URLs
 
   ~~~ css
   #foo {
-    bar: start;
+    bar: "start";
     bar: '';
     bar: null;
   }

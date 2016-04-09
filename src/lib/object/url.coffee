@@ -1,5 +1,7 @@
 # 3rd party
 parseURL    = require 'url'
+Path        = require 'path'
+Net         = require 'net'
 
 Object      = require '../object'
 Boolean     = require './boolean'
@@ -17,33 +19,52 @@ class URL extends Object
     set: (value) ->
       value = value.trim()
 
-      if '//' is value.substr 0, 2
-        value = 'fake:' + value
-        fake_scheme = yes
-      else
-        fake_scheme = no
-
       try
-        parsed  = parseURL.parse value
+        parsed = parseURL.parse value, no, yes
       catch e
         throw e # TODO
 
       @scheme =
-        if not fake_scheme and parsed.protocol?
-          parsed.protocol.substr 0, parsed.protocol.length - 1
+        if parsed.protocol?
+          parsed.protocol[0...parsed.protocol.length - 1]
         else
           null
-
-      @host     = parsed.hostname
-      @port     = parsed.port
-      @path     = parsed.pathname
-      @query    = parsed.query
-      @fragment = if parsed.hash? then parsed.hash.substr 1 else null
-
+      @auth = if parsed.auth isnt '' then parsed.auth else null
+      @host = if parsed.hostname isnt '' then parsed.hostname else null
+      @port = if parsed.port isnt '' then parsed.port else null
+      @path = if parsed.pathname isnt '' then parsed.pathname else null
+      @query = parsed.query
+      @fragment = if parsed.hash? and parsed.hash isnt ''
+                    parsed.hash.substr 1
+                  else
+                    null
   constructor: (@value = '', @quote = null) ->
 
   clone: (value = @value, quote = @quote) ->
     super value, quote
+
+  toString: ->
+    str = ''
+
+    str = "##{@fragment}#{str}" if @fragment isnt null
+    str = "?#{@query}#{str}" if @query isnt null
+    str = "#{@path}#{str}" if @path isnt null
+
+    if @host
+      str = ":#{@port}#{str}" if @port isnt null
+
+      host = @host
+      if ~ host.indexOf ':'
+        if host[0] isnt '[' or host[host.length - 1] isnt ']'
+          host = "[#{host}]"
+
+      if @auth and @auth isnt ''
+        host = "#{@auth}@#{host}"
+
+      str = "//#{host}#{str}"
+      str = "#{@scheme}:#{str}" if @scheme isnt null
+
+    str
 
   toJSON: ->
     json = super
@@ -60,7 +81,7 @@ class URL extends Object
     else
       super
 
-  '.scheme': -> if @scheme then new String @scheme, @quote
+  '.scheme': -> if @scheme then new String @scheme, @quote or '"'
 
   '.scheme=': (sch) ->
     if sch instanceof Null
@@ -74,9 +95,9 @@ class URL extends Object
 
   '.protocol=': @::['.scheme=']
 
-  '.absolute?': -> Boolean.new @scheme?
+  '.absolute?': -> Boolean.new @scheme
 
-  '.relative?': -> Boolean.new not @scheme?
+  '.relative?': -> Boolean.new not @scheme
 
   '.http?': -> Boolean.new @scheme is 'http'
 
@@ -92,9 +113,34 @@ class URL extends Object
     http.scheme = 'https'
     http
 
+  '.auth': ->
+    if @auth
+      new String @auth, @quote or '"'
+    else
+      Null.null
+
+  '.username': ->
+    if @auth
+      [username, _] = @auth.split ':'
+      new String username, @quote or '"'
+    else
+      Null.null
+
+  '.username=': (value) ->
+
+  '.password': ->
+    if @auth
+      [_, password] = @auth.split ':'
+      if password
+        return new String password, @quote or '"'
+
+    Null.null
+
+  '.password=': (value) ->
+
   '.host': ->
-    if @host?
-      new String @host, @quote
+    if @host
+      new String @host, @quote or '"'
     else
       Null.null
 
@@ -106,16 +152,25 @@ class URL extends Object
     else
       throw new Error "Bad URL host"
 
+  # Returns `true` if the host is a v4 IP
+  '.ipv4?': -> Boolean.new Net.isIPv4 @host
+
+  # Returns `true` if the host is a v6 IP
+  '.ipv6?': -> Boolean.new Net.isIPv6 @host
+
+  # Returns `true` if the host is an IP (v4 or v6)
+  '.ip?': -> Boolean.new Net.isIP @host
+
   '.domain': ->
     domain = @host
     if domain?
       if domain.match /^www\./i
         domain = domain.substr 4
-      new String domain, @quote
+      new String domain, @quote or '"'
     else
       Null.null
 
-  '.port': -> if @port? then new String @port, @quote
+  '.port': -> if @port then new String @port, @quote or '"'
 
   '.port=': (port) ->
     if port instanceof Null
@@ -141,9 +196,30 @@ class URL extends Object
     else
       throw new TypeError "Port number out of 1..65535 range: #{p}"
 
-  '.path': -> if @path? then new String @path, @quote
+  '.path': -> if @path then new String @path, @quote or '"'
 
-  '.query': -> if @query? then new String @query, @quote
+  '.path=': ->
+
+  do =>
+    pathInfo = (url, comp, etc...) ->
+      if url.path?
+        component = Path["#{comp}name"] url.path
+        if component isnt ''
+          return new String component, url.quote
+
+      null
+
+    ['dir', 'base', 'ext'].forEach (comp) =>
+      @::[".#{comp}name"] = (etc...) ->
+        Null.ifNull pathInfo @, comp, etc...
+
+      @::[".#{comp}name="] = (etc...) ->
+
+  '.filename': ->
+
+  '.filename=': ->
+
+  '.query': -> if @query then new String @query, @quote or '"'
 
   '.query=': (query) ->
     if query instanceof Null
@@ -153,7 +229,8 @@ class URL extends Object
     else
       throw new Error "Bad URL query"
 
-  '.fragment': -> if @fragment? then new String @fragment, @quote
+  '.fragment': ->
+    if @fragment isnt null then new String @fragment, @quote or '"'
 
   '.fragment=': (frag) ->
     if frag instanceof Null
@@ -164,23 +241,12 @@ class URL extends Object
       throw new Error "Bad URL fragment"
 
   '.hash': @::['.fragment']
+
   '.hash=': @::['.fragment=']
 
-  toString: ->
-    str = ''
+  '.normalize': ->
 
-    str = "##{@fragment}#{str}" if @fragment?
-    str = "?#{@query}#{str}" if @query?
-    str = "#{@path}#{str}" if @path?
-
-    if @host
-      str = ":#{@port}#{str}" if @port?
-      str = "//#{@host}#{str}"
-      str = "#{@scheme}:#{str}" if @scheme?
-
-    str
-
-  '.string': -> new String @toString(), @quote
+  '.string': -> new String @toString(), @quote or '"'
 
   do ->
     supah = String::['.+']
