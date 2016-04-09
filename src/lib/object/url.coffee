@@ -14,57 +14,122 @@ TypeError = require '../error/type'
 
 class URL extends Object
 
+  @COMPONENTS = [
+    'scheme'
+    'auth'
+    'username'
+    'password'
+    'host'
+    'port'
+    'path'
+    'query'
+    'fragment'
+  ]
+
+  @ALIAS_COMPONENTS =
+    protocol: 'scheme'
+    hash: 'fragment'
+
+  constructor: (@value = '', @quote = null) ->
+
   @property 'value',
     get: -> @toString()
     set: (value) ->
-      value = value.trim()
-
       try
-        parsed = parseURL.parse value, no, yes
+        @components = parseURL.parse value.trim(), no, yes
+        @components.host = null
       catch e
         throw e # TODO
 
-      @scheme =
-        if parsed.protocol?
-          parsed.protocol[0...parsed.protocol.length - 1]
-        else
-          null
-      @auth = if parsed.auth isnt '' then parsed.auth else null
-      @host = if parsed.hostname isnt '' then parsed.hostname else null
-      @port = if parsed.port isnt '' then parsed.port else null
-      @path = if parsed.pathname isnt '' then parsed.pathname else null
-      @query = parsed.query
-      @fragment = if parsed.hash? and parsed.hash isnt ''
-                    parsed.hash.substr 1
-                  else
-                    null
-  constructor: (@value = '', @quote = null) ->
+  @property 'scheme',
+    get: ->
+      @components.protocol and
+      @components.protocol[0...@components.protocol.length - 1]
+    set:(value) ->
+      if value
+        value = "#{value}:"
+      @components.protocol = value
+
+  @property 'auth',
+    get: -> @components.auth
+    set: (value) -> @components.auth = value
+
+  @property 'username',
+    get: ->
+      (@auth and (@auth.split ':')[0]) or null
+    set: ->
+
+  @property 'password',
+    get: ->
+      (@auth and (@auth.split ':')[1]) or null
+    set: ->
+
+  @property 'host',
+    get: ->
+      if @components.hostname is null then null else @components.hostname
+    set: (value) ->
+      @components.hostname = value
+
+  @property 'port',
+    get: -> @components.port
+    set: (value) ->
+      # TODO Validate
+      @components.port = value
+
+  @property 'path',
+    get: -> @components.pathname
+    set: (value) -> @components.pathname = value
+
+  @property 'query',
+    get: ->  @components.search and @components.search[1..]
+    set: (value) ->
+      if value isnt null
+        value = "?#{value}"
+      @components.search = value
+
+  @property 'fragment',
+    get: -> @components.hash and @components.hash[1..]
+    set: (value) ->
+      if value isnt null
+        value = "##{value}"
+      @components.hash = value
+
+  @property 'dirname',
+    get: ->
+      if @pathname then Path.dirname @pathname else null
+    set: (value) ->
+      value = if value? then value else ''
+      @pathname = Path.join '/', value, @basename
+
+  @property 'basename',
+    get: ->
+      if @pathname then Path.basename @pathname else null
+    set: (value) ->
+      value = if value? then value else ''
+      @pathname = Path.join '/', @dirname, value
+
+  @property 'extname',
+    get: ->
+      if @pathname then Path.extname @pathname else null
+    set: (value) ->
+      value = if value? then value else ''
+      basename = @filename + value
+      @pathname = Path.join '/', @dirname, basename
+
+  @property 'filename',
+    get: ->
+      if @pathname
+        Path.basename @pathname, @extname
+
+    set: (value) ->
+      value = if value? then value else ''
+      @pathname = Path.join '/', @dirname, "#{value}#{@extname}"
 
   clone: (value = @value, quote = @quote) ->
     super value, quote
 
   toString: ->
-    str = ''
-
-    str = "##{@fragment}#{str}" if @fragment isnt null
-    str = "?#{@query}#{str}" if @query isnt null
-    str = "#{@path}#{str}" if @path isnt null
-
-    if @host
-      str = ":#{@port}#{str}" if @port isnt null
-
-      host = @host
-      if ~ host.indexOf ':'
-        if host[0] isnt '[' or host[host.length - 1] isnt ']'
-          host = "[#{host}]"
-
-      if @auth and @auth isnt ''
-        host = "#{@auth}@#{host}"
-
-      str = "//#{host}#{str}"
-      str = "#{@scheme}:#{str}" if @scheme isnt null
-
-    str
+    parseURL.format @components
 
   toJSON: ->
     json = super
@@ -81,19 +146,25 @@ class URL extends Object
     else
       super
 
-  '.scheme': -> if @scheme then new String @scheme, @quote or '"'
+  @COMPONENTS.forEach (component) =>
+    @::[".#{component}"] = ->
+      value = @[component]
 
-  '.scheme=': (sch) ->
-    if sch instanceof Null
-      @scheme = null
-    else if sch instanceof String
-      @scheme = sch.value
-    else
-      throw new Error "Bad URL scheme"
+      if value is null
+        Null.null
+      else
+        new String value, @quote or '"'
 
-  '.protocol': @::['.scheme']
+    @::[".#{component}?"] = -> Boolean.new @[component]
 
-  '.protocol=': @::['.scheme=']
+    @::[".#{component}="] = (value) ->
+      value = if value.isNull() then null else value.toString()
+      @[component] = value
+
+  for alias of @ALIAS_COMPONENTS
+    @::[".#{alias}"] = @::[".#{@ALIAS_COMPONENTS[alias]}"]
+    @::[".#{alias}?"] = @::[".#{@ALIAS_COMPONENTS[alias]}?"]
+    @::[".#{alias}="] = @::[".#{@ALIAS_COMPONENTS[alias]}="]
 
   '.absolute?': -> Boolean.new @scheme
 
@@ -113,45 +184,6 @@ class URL extends Object
     http.scheme = 'https'
     http
 
-  '.auth': ->
-    if @auth
-      new String @auth, @quote or '"'
-    else
-      Null.null
-
-  '.username': ->
-    if @auth
-      [username, _] = @auth.split ':'
-      new String username, @quote or '"'
-    else
-      Null.null
-
-  '.username=': (value) ->
-
-  '.password': ->
-    if @auth
-      [_, password] = @auth.split ':'
-      if password
-        return new String password, @quote or '"'
-
-    Null.null
-
-  '.password=': (value) ->
-
-  '.host': ->
-    if @host
-      new String @host, @quote or '"'
-    else
-      Null.null
-
-  '.host=': (host) ->
-    if host instanceof Null
-      @host = null
-    else if host instanceof String
-      @host = host.value
-    else
-      throw new Error "Bad URL host"
-
   # Returns `true` if the host is a v4 IP
   '.ipv4?': -> Boolean.new Net.isIPv4 @host
 
@@ -164,85 +196,40 @@ class URL extends Object
   '.domain': ->
     domain = @host
     if domain?
-      if domain.match /^www\./i
+      if domain[0..3] is 'www.'
         domain = domain.substr 4
       new String domain, @quote or '"'
     else
       Null.null
-
-  '.port': -> if @port then new String @port, @quote or '"'
-
-  '.port=': (port) ->
-    if port instanceof Null
-      @port = null
-      return
-
-    if port instanceof String and port.isNumeric()
-      port = port.toNumber()
-    else if not (port instanceof Number)
-      throw new TypeError """
-        Cannot set URL port to non-numeric value: #{port.repr()}
-        """
-
-    p = port.value
-
-    if p % 1 isnt 0
-      throw new TypeError """
-        Cannot set URL port to non integer number: #{port.reprValue()}
-        """
-
-    if 1 <= p <= 65535
-      @port = p
-    else
-      throw new TypeError "Port number out of 1..65535 range: #{p}"
-
-  '.path': -> if @path then new String @path, @quote or '"'
-
-  '.path=': ->
 
   do =>
     pathInfo = (url, comp, etc...) ->
       if url.path?
         component = Path["#{comp}name"] url.path
         if component isnt ''
-          return new String component, url.quote
+          return new String component, url.quote or '"'
 
       null
 
     ['dir', 'base', 'ext'].forEach (comp) =>
-      @::[".#{comp}name"] = (etc...) ->
-        Null.ifNull pathInfo @, comp, etc...
+      name = "#{comp}name"
 
-      @::[".#{comp}name="] = (etc...) ->
+      @::[".#{name}"] = ->
+        value = @[name]
+        if value?
+          new String value, @quote or '"'
+
+      @::[".#{name}="] = (value) ->
+        if not value.isNull()
+          value = value.toString()
+        else
+          value = null
+
+        @[name] = value
 
   '.filename': ->
 
   '.filename=': ->
-
-  '.query': -> if @query then new String @query, @quote or '"'
-
-  '.query=': (query) ->
-    if query instanceof Null
-      @query = null
-    else if query instanceof String
-      @query = query.value.trim()
-    else
-      throw new Error "Bad URL query"
-
-  '.fragment': ->
-    if @fragment isnt null then new String @fragment, @quote or '"'
-
-  '.fragment=': (frag) ->
-    if frag instanceof Null
-      @fragment = null
-    else if frag instanceof String
-      @fragment = frag.value.trim()
-    else
-      throw new Error "Bad URL fragment"
-
-  '.hash': @::['.fragment']
-
-  '.hash=': @::['.fragment=']
 
   '.normalize': ->
 

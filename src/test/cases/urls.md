@@ -347,7 +347,7 @@ URLs
 
 ### `https`
 
-- Return a copy of the URL with the scheme set to 'https'
+- Returns a copy of the URL with the scheme set to 'https'
 
   ~~~ lay
   foo: url('http://disney.es/index.aspx').https
@@ -357,6 +357,77 @@ URLs
   foo: url('https://disney.es/index.aspx');
   ~~~
 
+### `auth`
+
+- Returns the authentication component of the URL
+
+  ~~~ lay
+  url.auth {
+    i: url(http://google.com).auth, url(http://google.com).auth.null?
+    ii: url(http://@google.com).auth, url(http://@google.com).auth.null?
+    iii: url(http://john@google.com).auth
+    iv: url(http://john:1234@google.com).auth
+  }
+  ~~~
+
+  ~~~ css
+  url.auth {
+    i: null, true;
+    ii: "", false;
+    iii: "john";
+    iv: "john:1234";
+  }
+  ~~~
+
+### `auth=`
+
+### `username`
+
+- Returns the username field on the `auth` component
+
+  ~~~ lay
+  url.auth {
+    i: url(http://google.com).username, url(http://google.com).username.null?
+    ii: url(http://@google.com).username, url(http://@google.com).username.null?
+    iii: url(http://john@google.com).username
+    iv: url(http://john:1234@google.com).username
+  }
+  ~~~
+
+  ~~~ css
+  url.auth {
+    i: null, true;
+    ii: null, true;
+    iii: "john";
+    iv: "john";
+  }
+  ~~~
+
+### `username=`
+
+### `password`
+
+- Returns the password from the `auth` component
+
+  ~~~ lay
+  url.auth {
+    i: url(http://google.com).password, url(http://google.com).password.null?
+    ii: url(http://@google.com).password, url(http://@google.com).password.null?
+    iii: url(http://john@google.com).password
+    iv: url(http://john:1234@google.com).password
+  }
+  ~~~
+
+  ~~~ css
+  url.auth {
+    i: null, true;
+    ii: null, true;
+    iii: null;
+    iv: "1234";
+  }
+  ~~~
+
+### `password=`
 
 ### `host`
 
@@ -423,12 +494,12 @@ URLs
   ~~~ lay
   url[ipv6] {
     $url = url('http://www.disney.com/pixar')
-    $url.host = '[2001:0db8:85a3:08d3:1319:8a2e:0370:7334]'
+    $url.host = '2001:0db8:85a3:08d3:1319:8a2e:0370:7334'
     i: $url
     $url.port = 21
     ii: $url
 
-    $url.host = '[2001:0DB8::1428:57ab]'
+    $url.host = '2001:0DB8::1428:57ab'
     iii: $url
 
     $url = url(http://user:password@[3ffe:2a00:100:7031::1]:8080) +
@@ -464,8 +535,8 @@ URLs
 
   ~~~ css
   foo: url('http://www.disney.com:8080/movies/');
-  foo: url('/movies/');
-  foo: url('/movies/');
+  foo: url('http:///movies/');
+  foo: url('http:///movies/');
   ~~~
 
 ### `domain`
@@ -556,16 +627,18 @@ URLs
 - Returns the `:port` part of the URL, if any, or `null`
 
   ~~~ lay
-  #foo {
-    bar: url('http://disney.com').port
-    bar: url(http://disney.com:8080/index.php).port
+  url.port {
+    i: url('http://disney.com').port
+    ii: url(http://disney.com:8080/index.php).port
+    iii: url(http://disney.com:21/index.php).port.number
   }
   ~~~
 
   ~~~ css
-  #foo {
-    bar: null;
-    bar: "8080";
+  url.port {
+    i: null;
+    ii: "8080";
+    iii: 21;
   }
   ~~~
 
@@ -664,23 +737,87 @@ URLs
 
 ### `path`
 
+- Returns the `path` component of the URL
+
+  ~~~ lay
+  url.dirname {
+    i: url(http://disney.org/princesses/aladdin/jasmine.html).path
+    ii: url(http://disney.com).path
+    iii: url(/etc/foo/bar/baz).path
+  }
+  ~~~
+
+  ~~~ css
+  ~~~
+
+
 ### `path=`
+
+- Sets the `path` component of the URL
 
 ### `dirname`
 
+- Returns the directory part of the URL path
+
+  ~~~ lay
+  url.dirname {
+    i: url(http://disney.org/princesses/aladdin/jasmine.html).dirname
+    ii: url(http://disney.com).dirname
+    iii: url(/etc/foo/bar/baz).dirname
+  }
+  ~~~
+
+  ~~~ css
+  url.dirname {
+    i: "/princesses/aladdin";
+    ii: "/";
+    iii: "/etc/foo/bar";
+  }
+  ~~~
+
 ### `dirname=`
+
+- Sets the directory part of the URL path
+
+  ~~~ lay
+  $url = url(http://disney.org/princesses/aladdin/jasmine.html)
+
+  url.dirname {
+    $url.dirname = '/'
+    i: $url
+    $url.dirname = 'search'
+    ii: $url
+  }
+  ~~~
+
+  ~~~ css
+  url.dirname {
+  }
+  ~~~
 
 ### `basename`
 
+- Returns the last portion of the URL path
+
 ### `basename=`
+
+- Sets the last portion of the URL path
 
 ### `extname`
 
+- Returns the extension of the URL path
+
 ### `extname=`
+
+- Sets the extension of the URL path
 
 ### `filename`
 
+- Returns the last portion of the URL path, without extension
+
 ### `filename=`
+
+- Sets the last portion of the URL path, without extension
 
 ### `query`
 
