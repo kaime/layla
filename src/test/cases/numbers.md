@@ -752,6 +752,7 @@
 
   ~~~ lay
   PI = 3.141592653589793
+
   number.sin {
     i:   0.sin, 0rad.sin, 0deg.sin, 0turn.sin
     ii:  (PI / 4).sin, (PI / 4)rad.sin, 45deg.sin, (1 / 8)turn.sin
@@ -778,17 +779,25 @@
 - Returns the cosine of the number
 
   ~~~ lay
+  PI = 3.141592653589793
+
   number.cos {
-    PI = 3.141592653589793
-    i:   0.cos, 0rad.cos, 0deg.cos, 0turn.cos
-    ii:  (PI / 4).cos, (PI / 4)rad.cos, 45deg.cos, (1 / 8)turn.cos
-    iii:  (PI / 2).cos, (PI / 2)rad.cos, 90deg.cos, .25turn.cos
-    iv: PI.cos, (PI)rad.cos, 180deg.cos, 0.5turn.cos
-    v: (2 * PI).cos, (2 * PI)rad.cos, 360deg.cos, 1turn.cos
+    i:   0.cos 0rad.cos 0deg.cos 0turn.cos
+    ii:  (PI / 4).cos (PI / 4)rad.cos 45deg.cos (1 / 8)turn.cos
+    iii:  (PI / 2).cos (PI / 2)rad.cos 90deg.cos .25turn.cos
+    iv: PI.cos (PI)rad.cos 180deg.cos 0.5turn.cos
+    v: (2 * PI).cos (2 * PI)rad.cos 360deg.cos 1turn.cos
   }
   ~~~
 
   ~~~ css
+  number.cos {
+    i: 1 1 1 1;
+    ii: 0.71 0.71 0.71 0.71;
+    iii: 0 0 0 0;
+    iv: -1 -1 -1 -1;
+    v: 1 1 1 1;
+  }
   ~~~
 
 - Fails for non-angle units
@@ -799,6 +808,7 @@
 
   ~~~ lay
   PI = 3.141592653589793
+
   number.tan {
     i:   0.tan, 0rad.tan, 0deg.tan, 0turn.tan
     ii:  (PI / 4).tan, (PI / 4)rad.tan, 45deg.tan, (1 / 8)turn.tan
@@ -819,6 +829,7 @@
 
   ~~~ lay
   PI = 3.141592653589793
+
   number.asin {
     i:   0.asin, 0rad.asin, 0deg.asin, 0turn.asin
     ii:  (PI / 4).asin, (PI / 4)rad.asin, 45deg.asin, (1 / 8)turn.asin
@@ -839,6 +850,7 @@
 
   ~~~ lay
   PI = 3.141592653589793
+
   number.acos {
     i:   0.acos, 0rad.acos, 0deg.acos, 0turn.acos
     ii:  (PI / 4).acos, (PI / 4)rad.acos, 45deg.acos, (1 / 8)turn.acos
@@ -849,6 +861,13 @@
   ~~~
 
   ~~~ css
+  number.asin {
+    i: 0
+    ii: 0.9
+    iii: 0
+    iv: 0
+    v:0
+  }
   ~~~
 
 - Fails for non-angle units
@@ -859,6 +878,7 @@
 
   ~~~ lay
   PI = 3.141592653589793
+
   number.atan {
     i:   0.atan, 0rad.atan, 0deg.atan, 0turn.atan
     ii:  (PI / 4).atan, (PI / 4)rad.atan, 45deg.atan, (1 / 8)turn.atan
@@ -869,6 +889,13 @@
   ~~~
 
   ~~~ css
+  number.tan {
+    i: 0, 0, 0, 0;
+    ii: 1, 1, 1, 1;
+    iii: 0, 0, 0, 0;
+    iv: 0, 0, 0, 0;
+    v: 0, 0, 0, 0;
+  }
   ~~~
 
 - Fails for non-angle units

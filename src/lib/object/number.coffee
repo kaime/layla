@@ -280,6 +280,8 @@ class Number extends Object
 
   '.trigonometric': (fn) ->
     rads = @convert 'rad'
+    console.log 'in: ', rads.value
+    console.log '=', Math[fn] rads.value
     rads.clone (Math[fn] rads.value), ''
 
   '.sin': -> @['.trigonometric'] 'sin'
