@@ -57,12 +57,12 @@ class URL extends Object
   @property 'username',
     get: ->
       (@auth and (@auth.split ':')[0]) or null
-    set: ->
+    set: (value) ->
 
   @property 'password',
     get: ->
       (@auth and (@auth.split ':')[1]) or null
-    set: ->
+    set: (value) ->
 
   @property 'host',
     get: ->
@@ -96,34 +96,34 @@ class URL extends Object
 
   @property 'dirname',
     get: ->
-      if @pathname then Path.dirname @pathname else null
+      if @path then Path.dirname @path else null
     set: (value) ->
       value = if value? then value else ''
-      @pathname = Path.join '/', value, @basename
+      @path = Path.join '/', value, @basename
 
   @property 'basename',
     get: ->
-      if @pathname then Path.basename @pathname else null
+      if @path then Path.basename @path else null
     set: (value) ->
       value = if value? then value else ''
-      @pathname = Path.join '/', @dirname, value
+      @path = Path.join '/', @dirname, value
 
   @property 'extname',
     get: ->
-      if @pathname then Path.extname @pathname else null
+      if @path then Path.extname @path else null
     set: (value) ->
       value = if value? then value else ''
       basename = @filename + value
-      @pathname = Path.join '/', @dirname, basename
+      @path = Path.join '/', @dirname, basename
 
   @property 'filename',
     get: ->
-      if @pathname
-        Path.basename @pathname, @extname
+      if @path
+        Path.basename @path, @extname
 
     set: (value) ->
       value = if value? then value else ''
-      @pathname = Path.join '/', @dirname, "#{value}#{@extname}"
+      @path = Path.join '/', @dirname, "#{value}#{@extname}"
 
   clone: (value = @value, quote = @quote) ->
     super value, quote
@@ -172,17 +172,11 @@ class URL extends Object
 
   '.http?': -> Boolean.new @scheme is 'http'
 
-  '.http': ->
-    http = @clone()
-    http.scheme = 'http'
-    http
+  '.http': -> @clone().set scheme: 'http'
 
   '.https?': -> Boolean.new @scheme is 'https'
 
-  '.https': ->
-    http = @clone()
-    http.scheme = 'https'
-    http
+  '.https': -> @clone().set scheme: 'https'
 
   # Returns `true` if the host is a v4 IP
   '.ipv4?': -> Boolean.new Net.isIPv4 @host
@@ -211,11 +205,12 @@ class URL extends Object
 
       null
 
-    ['dir', 'base', 'ext'].forEach (comp) =>
+    ['dir', 'base', 'ext', 'file'].forEach (comp) =>
       name = "#{comp}name"
 
       @::[".#{name}"] = ->
         value = @[name]
+
         if value?
           new String value, @quote or '"'
 
@@ -226,10 +221,6 @@ class URL extends Object
           value = null
 
         @[name] = value
-
-  '.filename': ->
-
-  '.filename=': ->
 
   '.normalize': ->
 

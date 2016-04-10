@@ -740,7 +740,7 @@ URLs
 - Returns the `path` component of the URL
 
   ~~~ lay
-  url.dirname {
+  url.path {
     i: url(http://disney.org/princesses/aladdin/jasmine.html).path
     ii: url(http://disney.com).path
     iii: url(/etc/foo/bar/baz).path
@@ -748,12 +748,33 @@ URLs
   ~~~
 
   ~~~ css
+  url.path {
+    i: "/princesses/aladdin/jasmine.html";
+    ii: "/";
+    iii: "/etc/foo/bar/baz";
+  }
   ~~~
-
 
 ### `path=`
 
 - Sets the `path` component of the URL
+
+  ~~~ lay
+  $url = url(http://disney.org/princesses/aladdin/jasmine.html);
+  url.path {
+    $url.path = '/';
+    i: $url
+    $url.path = '/etc/foo/bar/baz';
+    ii: $url
+  }
+  ~~~
+
+  ~~~ css
+  url.path {
+    i: url(http://disney.org/);
+    ii: url(http://disney.org/etc/foo/bar/baz);
+  }
+  ~~~
 
 ### `dirname`
 
@@ -792,6 +813,8 @@ URLs
 
   ~~~ css
   url.dirname {
+    i: url(http://disney.org/jasmine.html);
+    ii: url(http://disney.org/search/jasmine.html);
   }
   ~~~
 
@@ -799,25 +822,125 @@ URLs
 
 - Returns the last portion of the URL path
 
+  ~~~ lay
+  url.basename {
+    i: url(http://disney.org/princesses/aladdin/jasmine.html).basename
+    ii: url(http://disney.com).basename
+    iii: url(/etc/foo/bar/baz).basename
+  }
+  ~~~
+
+  ~~~ css
+  url.basename {
+    i: "jasmine.html";
+    ii: null;
+    iii: "baz";
+  }
+  ~~~
+
 ### `basename=`
 
 - Sets the last portion of the URL path
+
+  ~~~ lay
+  $url = url(http://disney.org/princesses/aladdin/jasmine.html)
+
+  url.basename {
+    $url.basename = 'index.php'
+    i: $url
+  }
+  ~~~
+
+  ~~~ css
+  url.basename {
+    i: url(http://disney.org/princesses/aladdin/index.php);
+  }
+  ~~~
 
 ### `extname`
 
 - Returns the extension of the URL path
 
+  ~~~ lay
+  url.extname {
+    i: url(http://disney.org/princesses/aladdin/jasmine.html).extname
+    ii: url(http://disney.com).extname
+    iii: url(/etc/foo/bar/baz).extname
+  }
+  ~~~
+
+  ~~~ css
+  url.extname {
+    i: ".html";
+    ii: null;
+    iii: null;
+  }
+  ~~~
+
 ### `extname=`
 
 - Sets the extension of the URL path
+
+  ~~~ lay
+  $url = url(http://disney.org/princesses/aladdin/jasmine.html)
+
+  url.extname {
+    $url.extname = '.aspx'
+    i: $url
+    $url.extname = null
+    ii: $url
+    $url.path = '/x/y/z'
+    $url.extname = '.php'
+    iii: $url
+  }
+  ~~~
+
+  ~~~ css
+  url.extname {
+    i: url(http://disney.org/princesses/aladdin/jasmine.aspx);
+    ii: url(http://disney.org/princesses/aladdin/jasmine);
+    iii: url(http://disney.org/x/y/z.php);
+  }
+  ~~~
 
 ### `filename`
 
 - Returns the last portion of the URL path, without extension
 
+  ~~~ lay
+  url.filename {
+    i: url(http://disney.org/princesses/aladdin/jasmine.html).filename
+    ii: url(http://disney.com).filename
+    iii: url(/etc/foo/bar/baz).filename
+  }
+  ~~~
+
+  ~~~ css
+  url.filename {
+    i: "jasmine";
+    ii: null;
+    iii: "baz";
+  }
+  ~~~
+
 ### `filename=`
 
 - Sets the last portion of the URL path, without extension
+
+  ~~~ lay
+  $url = url(http://disney.org/princesses/aladdin/jasmine.html)
+
+  url.filename {
+    $url.filename = 'index'
+    i: $url
+  }
+  ~~~
+
+  ~~~ css
+  url.filename {
+    i: url(http://disney.org/princesses/aladdin/index.html);
+  }
+  ~~~
 
 ### `query`
 
@@ -1000,8 +1123,6 @@ URLs
     bar: false;
   }
   ~~~
-
-### `auth`
 
 ### Operators
 
