@@ -752,19 +752,23 @@
 
   ~~~ lay
   PI = 3.141592653589793
-  i:   0.sin, 0rad.sin, 0deg.sin, 0turn.sin
-  ii:  (PI / 4).sin, (PI / 4)rad.sin, 45deg.sin, (1 / 8)turn.sin
-  iii:  (PI / 2).sin, (PI / 2)rad.sin, 90deg.sin, .25turn.sin
-  iv: PI.sin, (PI)rad.sin, 180deg.sin, 0.5turn.sin
-  v: (2 * PI).sin, (2 * PI)rad.sin, 360deg.sin, 1turn.sin
+  number.sin {
+    i:   0.sin, 0rad.sin, 0deg.sin, 0turn.sin
+    ii:  (PI / 4).sin, (PI / 4)rad.sin, 45deg.sin, (1 / 8)turn.sin
+    iii:  (PI / 2).sin, (PI / 2)rad.sin, 90deg.sin, .25turn.sin
+    iv: PI.sin, (PI)rad.sin, 180deg.sin, 0.5turn.sin
+    v: (2 * PI).sin, (2 * PI)rad.sin, 360deg.sin, 1turn.sin
+  }
   ~~~
 
   ~~~ css
-  i: 0, 0, 0, 0;
-  ii: 0.71, 0.71, 0.71, 0.71;
-  iii: 1, 1, 1, 1;
-  iv: 0, 0, 0, 0;
-  v: 0, 0, 0, 0;
+  number.sin {
+    i: 0, 0, 0, 0;
+    ii: 0.71, 0.71, 0.71, 0.71;
+    iii: 1, 1, 1, 1;
+    iv: 0, 0, 0, 0;
+    v: 0, 0, 0, 0;
+  }
   ~~~
 
 - Fails for non-angle units
@@ -774,12 +778,14 @@
 - Returns the cosine of the number
 
   ~~~ lay
-  PI = 3.141592653589793
-  i:   0.cos, 0rad.cos, 0deg.cos, 0turn.cos
-  ii:  (PI / 4).cos, (PI / 4)rad.cos, 45deg.cos, (1 / 8)turn.cos
-  iii:  (PI / 2).cos, (PI / 2)rad.cos, 90deg.cos, .25turn.cos
-  iv: PI.cos, (PI)rad.cos, 180deg.cos, 0.5turn.cos
-  v: (2 * PI).cos, (2 * PI)rad.cos, 360deg.cos, 1turn.cos
+  number.cos {
+    PI = 3.141592653589793
+    i:   0.cos, 0rad.cos, 0deg.cos, 0turn.cos
+    ii:  (PI / 4).cos, (PI / 4)rad.cos, 45deg.cos, (1 / 8)turn.cos
+    iii:  (PI / 2).cos, (PI / 2)rad.cos, 90deg.cos, .25turn.cos
+    iv: PI.cos, (PI)rad.cos, 180deg.cos, 0.5turn.cos
+    v: (2 * PI).cos, (2 * PI)rad.cos, 360deg.cos, 1turn.cos
+  }
   ~~~
 
   ~~~ css
@@ -793,11 +799,13 @@
 
   ~~~ lay
   PI = 3.141592653589793
-  i:   0.tan, 0rad.tan, 0deg.tan, 0turn.tan
-  ii:  (PI / 4).tan, (PI / 4)rad.tan, 45deg.tan, (1 / 8)turn.tan
-  iii:  (PI / 2).tan, (PI / 2)rad.tan, 90deg.tan, .25turn.tan
-  iv: PI.tan, (PI)rad.tan, 180deg.tan, 0.5turn.tan
-  v: (2 * PI).tan, (2 * PI)rad.tan, 360deg.tan, 1turn.tan
+  number.tan {
+    i:   0.tan, 0rad.tan, 0deg.tan, 0turn.tan
+    ii:  (PI / 4).tan, (PI / 4)rad.tan, 45deg.tan, (1 / 8)turn.tan
+    iii:  (PI / 2).tan, (PI / 2)rad.tan, 90deg.tan, .25turn.tan
+    iv: PI.tan, (PI)rad.tan, 180deg.tan, 0.5turn.tan
+    v: (2 * PI).tan, (2 * PI)rad.tan, 360deg.tan, 1turn.tan
+  }
   ~~~
 
   ~~~ css
@@ -811,11 +819,13 @@
 
   ~~~ lay
   PI = 3.141592653589793
-  i:   0.asin, 0rad.asin, 0deg.asin, 0turn.asin
-  ii:  (PI / 4).asin, (PI / 4)rad.asin, 45deg.asin, (1 / 8)turn.asin
-  iii:  (PI / 2).asin, (PI / 2)rad.asin, 90deg.asin, .25turn.asin
-  iv: PI.asin, (PI)rad.asin, 180deg.asin, 0.5turn.asin
-  v: (2 * PI).asin, (2 * PI)rad.asin, 360deg.asin, 1turn.asin
+  number.asin {
+    i:   0.asin, 0rad.asin, 0deg.asin, 0turn.asin
+    ii:  (PI / 4).asin, (PI / 4)rad.asin, 45deg.asin, (1 / 8)turn.asin
+    iii:  (PI / 2).asin, (PI / 2)rad.asin, 90deg.asin, .25turn.asin
+    iv: PI.asin, (PI)rad.asin, 180deg.asin, 0.5turn.asin
+    v: (2 * PI).asin, (2 * PI)rad.asin, 360deg.asin, 1turn.asin
+  }
   ~~~
 
   ~~~ css
@@ -829,11 +839,13 @@
 
   ~~~ lay
   PI = 3.141592653589793
-  i:   0.acos, 0rad.acos, 0deg.acos, 0turn.acos
-  ii:  (PI / 4).acos, (PI / 4)rad.acos, 45deg.acos, (1 / 8)turn.acos
-  iii:  (PI / 2).acos, (PI / 2)rad.acos, 90deg.acos, .25turn.acos
-  iv: PI.acos, (PI)rad.acos, 180deg.acos, 0.5turn.acos
-  v: (2 * PI).acos, (2 * PI)rad.acos, 360deg.acos, 1turn.acos
+  number.acos {
+    i:   0.acos, 0rad.acos, 0deg.acos, 0turn.acos
+    ii:  (PI / 4).acos, (PI / 4)rad.acos, 45deg.acos, (1 / 8)turn.acos
+    iii:  (PI / 2).acos, (PI / 2)rad.acos, 90deg.acos, .25turn.acos
+    iv: PI.acos, (PI)rad.acos, 180deg.acos, 0.5turn.acos
+    v: (2 * PI).acos, (2 * PI)rad.acos, 360deg.acos, 1turn.acos
+  }
   ~~~
 
   ~~~ css
@@ -847,11 +859,13 @@
 
   ~~~ lay
   PI = 3.141592653589793
-  i:   0.atan, 0rad.atan, 0deg.atan, 0turn.atan
-  ii:  (PI / 4).atan, (PI / 4)rad.atan, 45deg.atan, (1 / 8)turn.atan
-  iii:  (PI / 2).atan, (PI / 2)rad.atan, 90deg.atan, .25turn.atan
-  iv: PI.atan, (PI)rad.atan, 180deg.atan, 0.5turn.atan
-  v: (2 * PI).atan, (2 * PI)rad.atan, 360deg.atan, 1turn.atan
+  number.atan {
+    i:   0.atan, 0rad.atan, 0deg.atan, 0turn.atan
+    ii:  (PI / 4).atan, (PI / 4)rad.atan, 45deg.atan, (1 / 8)turn.atan
+    iii:  (PI / 2).atan, (PI / 2)rad.atan, 90deg.atan, .25turn.atan
+    iv: PI.atan, (PI)rad.atan, 180deg.atan, 0.5turn.atan
+    v: (2 * PI).atan, (2 * PI)rad.atan, 360deg.atan, 1turn.atan
+  }
   ~~~
 
   ~~~ css
@@ -879,7 +893,7 @@
   }
   ~~~
 
-- Defaults to base `10`, returning a clone of the number
+- Defaults to base `10`
 
   ~~~ lay
   number.base {
