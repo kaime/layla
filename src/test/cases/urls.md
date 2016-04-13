@@ -681,7 +681,7 @@ URLs
   ~~~
 
   ~~~ TypeError
-  Cannot set URL port to non integer number: 2.7
+  Cannot set URL port to non-integer number: 2.7
   ~~~
 
   ~~~ lay
@@ -694,7 +694,7 @@ URLs
   background: url('http://disney.com:80/');
   ~~~
 
-- Fails for numbers not in the 1..65535 range
+- Fails for numbers not in the 0..65535 range
 
   ~~~ lay
   url('http://disney.com/').port = -1
@@ -708,8 +708,7 @@ URLs
   url('http://disney.com/').port = 0
   ~~~
 
-  ~~~ TypeError
-  Port number out of 1..65535 range: 0
+  ~~~ css
   ~~~
 
   ~~~ lay
@@ -833,7 +832,7 @@ URLs
   ~~~ css
   url.basename {
     i: "jasmine.html";
-    ii: null;
+    ii: "";
     iii: "baz";
   }
   ~~~
@@ -872,8 +871,8 @@ URLs
   ~~~ css
   url.extname {
     i: ".html";
-    ii: null;
-    iii: null;
+    ii: "";
+    iii: "";
   }
   ~~~
 
@@ -918,7 +917,7 @@ URLs
   ~~~ css
   url.filename {
     i: "jasmine";
-    ii: null;
+    ii: "";
     iii: "baz";
   }
   ~~~

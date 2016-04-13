@@ -101,6 +101,8 @@ class Number extends Object
 
   isPure: -> @unit is null
 
+  isInteger: -> @value % 1 is 0
+
   isEmpty: -> @value is 0
 
   # http://www.javascripter.net/faq/numberisprime.htm
@@ -207,7 +209,7 @@ class Number extends Object
 
   '.zero?': -> Boolean.new @value is 0
 
-  '.integer?': -> Boolean.new @value % 1 is 0
+  '.integer?': -> Boolean.new @isInteger()
 
   '.decimal?': -> Boolean.new @value % 1 isnt 0
 

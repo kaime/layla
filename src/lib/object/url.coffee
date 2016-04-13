@@ -73,7 +73,6 @@ class URL extends Object
   @property 'port',
     get: -> @components.port
     set: (value) ->
-      # TODO Validate
       @components.port = value
 
   @property 'path',
@@ -146,8 +145,35 @@ class URL extends Object
     else
       super
 
+  '.port=': (value) ->
+    unless value.isNull()
+      if not (value instanceof Number)
+        try
+          value = value.toNumber()
+        catch
+          throw new TypeError (
+            "Cannot set URL port to non-numeric value: #{value.repr()}"
+          )
+
+      unless value.isPure()
+        throw new TypeError (
+          "Cannot set URL port to non-pure number: #{value.reprValue()}"
+        )
+
+      unless value.isInteger()
+        throw new TypeError (
+          "Cannot set URL port to non-integer number: #{value.reprValue()}"
+        )
+
+      unless 0 <= value.value <= 65535
+        throw new TypeError (
+          "Port number out of 1..65535 range: #{value.reprValue()}"
+        )
+
+    @port = value.value
+
   @COMPONENTS.forEach (component) =>
-    @::[".#{component}"] = ->
+    @::[".#{component}"] ?= ->
       value = @[component]
 
       if value is null
@@ -155,16 +181,16 @@ class URL extends Object
       else
         new String value, @quote or '"'
 
-    @::[".#{component}?"] = -> Boolean.new @[component]
+    @::[".#{component}?"] ?= -> Boolean.new @[component]
 
-    @::[".#{component}="] = (value) ->
+    @::[".#{component}="] ?= (value) ->
       value = if value.isNull() then null else value.toString()
       @[component] = value
 
   for alias of @ALIAS_COMPONENTS
-    @::[".#{alias}"] = @::[".#{@ALIAS_COMPONENTS[alias]}"]
-    @::[".#{alias}?"] = @::[".#{@ALIAS_COMPONENTS[alias]}?"]
-    @::[".#{alias}="] = @::[".#{@ALIAS_COMPONENTS[alias]}="]
+    @::[".#{alias}"] ?= @::[".#{@ALIAS_COMPONENTS[alias]}"]
+    @::[".#{alias}?"] ?= @::[".#{@ALIAS_COMPONENTS[alias]}?"]
+    @::[".#{alias}="] ?= @::[".#{@ALIAS_COMPONENTS[alias]}="]
 
   '.absolute?': -> Boolean.new @scheme
 
