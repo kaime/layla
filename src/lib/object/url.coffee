@@ -52,17 +52,37 @@ class URL extends Object
 
   @property 'auth',
     get: -> @components.auth
-    set: (value) -> @components.auth = value
+    set: (value) ->
+      @components.auth = value
+
+  makeAuth: (user, pass) ->
+    @auth =
+      if user?
+        if pass?
+          "#{user}:#{pass}"
+        else
+          user
+      else if pass?
+        ":#{pass}"
+      else
+        null
 
   @property 'username',
     get: ->
-      (@auth and (@auth.split ':')[0]) or null
+      if @auth?
+        user = (@auth.split ':')[0]
+      user ?= null
+      user
     set: (value) ->
+      @makeAuth value, @password
 
   @property 'password',
     get: ->
-      (@auth and (@auth.split ':')[1]) or null
+      if @auth
+        pass = (@auth.split ':')[1]
+      pass ?= null
     set: (value) ->
+      @makeAuth @username, value
 
   @property 'host',
     get: ->

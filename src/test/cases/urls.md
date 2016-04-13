@@ -397,13 +397,38 @@ URLs
   ~~~ css
   url.auth {
     i: null, true;
-    ii: null, true;
+    ii: "", false;
     iii: "john";
     iv: "john";
   }
   ~~~
 
 ### `username=`
+
+- Sets the `username` portion of the `auth` component
+
+  ~~~ lay
+  $url = url(http://john:1234@google.com)
+
+  url.auth {
+    i: $url.username
+    $url.username = 'joe';
+    ii: $url.username
+    $url.username = null;
+    iii: $url.username
+    $url.username = '';
+    iv: $url.username
+  }
+  ~~~
+
+  ~~~ css
+  url.auth {
+    i: "john";
+    ii: "joe";
+    iii: "";
+    iv: "";
+  }
+  ~~~
 
 ### `password`
 
@@ -415,6 +440,7 @@ URLs
     ii: url(http://@google.com).password, url(http://@google.com).password.null?
     iii: url(http://john@google.com).password
     iv: url(http://john:1234@google.com).password
+    v: url(http://:1234@google.com).password
   }
   ~~~
 
@@ -424,10 +450,43 @@ URLs
     ii: null, true;
     iii: null;
     iv: "1234";
+    v: "1234";
   }
   ~~~
 
 ### `password=`
+
+- Sets the `password` portion of the `auth` component
+
+  ~~~ lay
+  $url = url(http://john:1234@google.com)
+
+  url.auth {
+    i: $url.password $url.auth
+    $url.password = '4321';
+    ii: $url.password $url.auth
+    $url.password = null;
+    iii: $url.password $url.auth
+    $url.password = '';
+    iv: $url.password $url.auth
+    $url.username = ''
+    v: $url
+    $url.username = $url.password = null;
+    vi: $url
+  }
+  ~~~
+
+  ~~~ css
+  url.auth {
+    i: "1234" "john:1234";
+    ii: "4321" "john:4321";
+    iii: null "john";
+    iv: "" "john:";
+    v: url(http://:@google.com/);
+    vi: url(http://google.com/);
+  }
+  ~~~
+
 
 ### `host`
 
@@ -519,8 +578,6 @@ URLs
     v: url(http://user:password@[3ffe:2a00:100:7031::1]/articles/index.html);
   }
   ~~~
-
-- Fails for invalid hosts
 
 - Accepts `null` and empty string
 
@@ -967,14 +1024,33 @@ URLs
   $url = url(http://google.com/)
   $url.query = 'hey=Joe'
 
-  foo: $url
+  url.query {
+    foo: $url
+  }
   ~~~
 
   ~~~ css
-  foo: url(http://google.com/?hey=Joe);
+  url.query {
+    foo: url(http://google.com/?hey=Joe);
+  }
   ~~~
 
 - Is properly encoded
+
+  ~~~ lay
+  $url = url(http://google.com/)
+  $url.query = 'hey=John Doe&q=foo bar'
+
+  url.query {
+    foo: $url
+  }
+  ~~~
+
+  ~~~ css
+  url.query {
+    foo: url(http://google.com/?hey=John%20Doe&q=foo%20bar);
+  }
+  ~~~
 
 - Accepts `null` and empty string
 
@@ -1018,16 +1094,34 @@ URLs
 - Sets the `#fragment` part of the URL
 
   ~~~ lay
-  $url = url('http://disney.com/')
-  $url.fragment = 'footer'
-  foo: $url
+  url.fragment {
+    $url = url('http://disney.com/')
+    $url.fragment = 'footer'
+    foo: $url
+  }
   ~~~
 
   ~~~ css
-  foo: url('http://disney.com/#footer');
+  url.fragment {
+    foo: url('http://disney.com/#footer');
+  }
   ~~~
 
 - Is properly encoded
+
+  ~~~ lay
+  url.fragment {
+    $url = url('http://disney.com/')
+    $url.fragment = 'second section'
+    foo: $url
+  }
+  ~~~
+
+  ~~~ css
+  url.fragment {
+    foo: url('http://disney.com/#second%20section');
+  }
+  ~~~
 
 - Accepts `null` and empty string
 
