@@ -26,12 +26,7 @@ class Color extends Object
     cmyk: [ CYAN, MAGENTA, YELLOW, BLACK ]
 
   RE_HEX_COLOR  = /#([\da-f]+)/i
-  RE_FUNC_COLOR = ///
-                  ([a-z_-][a-z\d_-]*)\s*
-                  \(\s*
-                    (\d[a-z%]*
-                    (?:\s*,\s*\d[a-z%]*)*)
-                  \s*\)///i
+  RE_FUNC_COLOR = /([a-z_-][a-z\d_-]*)\s*\((.*)\)/i
 
   {round, max, min, abs, sqrt} = Math
 
@@ -443,7 +438,11 @@ class Color extends Object
   _parseFuncString: (str) ->
     if m = str.match RE_FUNC_COLOR
       space = m[1].toLowerCase()
-      args = m[2].toLowerCase().split /(\s*,\s*)+/
+
+      if space[-1..] is 'a'
+        space = space[...-1]
+
+      args = m[2].toLowerCase().split /(?:\s*,\s*)+/
 
       # TODO UNITS!
       if space of SPACES
@@ -452,11 +451,11 @@ class Color extends Object
         for channel in SPACES[space]
           channels.push parseFloat args.shift()
 
-        if args.length > 1
-          @alpha = args.shift()
+        if args.length
+          @alpha = parseFloat args.shift()
 
         if args.length
-          throw new Error "Too many values passed to `#{space()}`"
+          throw new Error "Too many values passed to `#{space}()`"
 
         @space = space
         return @spaces[space] = channels
@@ -563,6 +562,14 @@ class Color extends Object
 
   isEmpty: -> @alpha is 0
 
+  toRGBAString: ->
+    comps = @['rgb'].map (c) -> round c
+
+    if @alpha < 1
+      comps.push (round @alpha * 100) / 100
+
+    return "rgba(" + (comps.join ', ') + ')'
+
   toHexString: ->
     comps = [].concat @['rgb']
 
@@ -581,7 +588,10 @@ class Color extends Object
     return hex
 
   toString: ->
-    @toHexString()
+    if @alpha < 1
+      @toRGBAString()
+    else
+      @toHexString()
 
   clone: (color = null, etc...) ->
     color = color or @toString()

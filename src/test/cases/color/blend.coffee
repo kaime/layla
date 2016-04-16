@@ -40,6 +40,43 @@ Phantom.create()
       canvas.width = width
       canvas.height = height
 
+      rgba = (hex) ->
+        str = hex[1..]
+        l = str.length
+        alpha = 1
+
+        switch l
+          when 3, 4
+            channels = [
+              17 * parseInt str[0], 16
+              17 * parseInt str[1], 16
+              17 * parseInt str[2], 16
+            ]
+
+            if l > 3
+              alpha = (17 * parseInt str[3], 16) / 255
+
+          when 6, 8
+            channels = [
+              parseInt str[0..1], 16
+              parseInt str[2..3], 16
+              parseInt str[4..5], 16
+            ]
+
+            if l > 6
+              alpha = (parseInt str[6..7], 16) / 255
+
+        channels = channels.map (ch) -> Math.round ch
+        alpha = (Math.round 100 * alpha) / 100
+
+        if alpha < 1
+          space = 'rgba'
+          channels = channels.concat alpha
+        else
+          space = 'rgb'
+
+        return "#{space}(#{channels.join ', '})"
+
       ROMANS =
         m:  1000
         cm:  900
@@ -92,12 +129,12 @@ Phantom.create()
             ctx.rect 0, 0, width, height
 
             ctx.globalCompositeOperation = 'source-over'
-            ctx.fillStyle = background
+            ctx.fillStyle = rgba background
             ctx.fill()
 
             ctx.globalCompositeOperation =
               if mode is 'normal' then 'source-over' else mode
-            ctx.fillStyle = source
+            ctx.fillStyle = rgba source
             ctx.fill()
 
             result = (ctx.getImageData width / 2, height / 2, 1, 1).data

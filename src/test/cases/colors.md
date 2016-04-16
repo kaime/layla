@@ -66,9 +66,9 @@
 
   ~~~ css
   color[hex=8] {
-    eight: #00000000;
+    eight: rgba(0, 0, 0, 0);
     eight: #ffffff;
-    eight: #a7cb82ab;
+    eight: rgba(167, 203, 130, 0.67);
   }
   ~~~
 
@@ -85,10 +85,10 @@
 
   ~~~ css
   color[hex=4] {
-    four: #00000000;
-    four: #000000aa;
+    four: rgba(0, 0, 0, 0);
+    four: rgba(0, 0, 0, 0.67);
     four: #ffffff;
-    four: #bb7788cc;
+    four: rgba(187, 119, 136, 0.8);
   }
   ~~~
 
@@ -138,7 +138,7 @@
 
   ~~~ css
   color.true {
-    foo: true true #00000000 true true true;
+    foo: true true rgba(0, 0, 0, 0) true true true;
   }
   ~~~
 
@@ -180,21 +180,21 @@
 
   ~~~ lay
   color.transparent {
-    foo: #000.transparent
-    foo: #000d.transparent
-    foo: #000f.transparent
-    foo: #fa2a.transparent
-    foo: #b271acf2.transparent
+    i: #000.transparent
+    ii: #000d.transparent
+    iii: #000f.transparent
+    iv: #fa2a.transparent
+    v: #b271acf2.transparent
   }
   ~~~
 
   ~~~ css
   color.transparent {
-    foo: #00000000;
-    foo: #00000000;
-    foo: #00000000;
-    foo: #ffaa2200;
-    foo: #b271ac00;
+    i: rgba(0, 0, 0, 0);
+    ii: rgba(0, 0, 0, 0);
+    iii: rgba(0, 0, 0, 0);
+    iv: rgba(255, 170, 34, 0);
+    v: rgba(178, 113, 172, 0);
   }
   ~~~
 
@@ -499,7 +499,7 @@
     i: #bc8579;
     ii: #ffffff;
     iii: #000000;
-    iv: #ffffffdd;
+    iv: rgba(255, 255, 255, 0.87);
     v: #000000;
   }
   ~~~
