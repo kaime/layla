@@ -14,6 +14,16 @@ TypeError = require '../error/type'
 
 class URL extends Object
 
+  class URLData extends String
+    constructor: (data) ->
+
+    @property 'mime',
+      get: ->
+
+    @property 'charset',
+      get: ->
+
+
   @COMPONENTS = [
     'scheme'
     'username'
@@ -31,9 +41,14 @@ class URL extends Object
 
   constructor: (@value = '', @quote = null) ->
 
+  _parseData: (value) ->
+
+
   @property 'value',
     get: -> @toString()
     set: (value) ->
+      value = value.trim()
+
       try
         @components = parseURL.parse value.trim(), no, yes
         @components.host = null

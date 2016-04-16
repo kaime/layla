@@ -33,6 +33,7 @@
     "glob": "^5.0.5",
     "mocha": "~2.2.0",
     "should": "~4.1.0",
+    "strong-data-uri": "^1.0.3",
     "uglify-js": "^2.4.17",
     "which": "^1.0.9"
   }
