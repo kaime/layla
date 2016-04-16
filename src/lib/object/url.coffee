@@ -16,7 +16,6 @@ class URL extends Object
 
   @COMPONENTS = [
     'scheme'
-    'auth'
     'username'
     'password'
     'host'

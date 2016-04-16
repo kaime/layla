@@ -139,8 +139,6 @@ URLs
   background: url('');
   ~~~
 
-- Does not add trailing slashes
-
 - Support data URIs
 
   ~~~ lay
@@ -357,36 +355,12 @@ URLs
   foo: url('https://disney.es/index.aspx');
   ~~~
 
-### `auth`
-
-- Returns the authentication component of the URL
-
-  ~~~ lay
-  url.auth {
-    i: url(http://google.com).auth, url(http://google.com).auth.null?
-    ii: url(http://@google.com).auth, url(http://@google.com).auth.null?
-    iii: url(http://john@google.com).auth
-    iv: url(http://john:1234@google.com).auth
-  }
-  ~~~
-
-  ~~~ css
-  url.auth {
-    i: null, true;
-    ii: "", false;
-    iii: "john";
-    iv: "john:1234";
-  }
-  ~~~
-
-### `auth=`
-
 ### `username`
 
 - Returns the username field on the `auth` component
 
   ~~~ lay
-  url.auth {
+  url.username {
     i: url(http://google.com).username, url(http://google.com).username.null?
     ii: url(http://@google.com).username, url(http://@google.com).username.null?
     iii: url(http://john@google.com).username
@@ -395,7 +369,7 @@ URLs
   ~~~
 
   ~~~ css
-  url.auth {
+  url.username {
     i: null, true;
     ii: "", false;
     iii: "john";
@@ -410,7 +384,7 @@ URLs
   ~~~ lay
   $url = url(http://john:1234@google.com)
 
-  url.auth {
+  url.username {
     i: $url.username
     $url.username = 'joe';
     ii: $url.username
@@ -422,7 +396,7 @@ URLs
   ~~~
 
   ~~~ css
-  url.auth {
+  url.username {
     i: "john";
     ii: "joe";
     iii: "";
@@ -435,7 +409,7 @@ URLs
 - Returns the password from the `auth` component
 
   ~~~ lay
-  url.auth {
+  url.password {
     i: url(http://google.com).password, url(http://google.com).password.null?
     ii: url(http://@google.com).password, url(http://@google.com).password.null?
     iii: url(http://john@google.com).password
@@ -445,7 +419,7 @@ URLs
   ~~~
 
   ~~~ css
-  url.auth {
+  url.password {
     i: null, true;
     ii: null, true;
     iii: null;
@@ -461,14 +435,14 @@ URLs
   ~~~ lay
   $url = url(http://john:1234@google.com)
 
-  url.auth {
-    i: $url.password $url.auth
+  url.password {
+    i: $url.password
     $url.password = '4321';
-    ii: $url.password $url.auth
+    ii: $url.password
     $url.password = null;
-    iii: $url.password $url.auth
+    iii: $url.password
     $url.password = '';
-    iv: $url.password $url.auth
+    iv: $url.password
     $url.username = ''
     v: $url
     $url.username = $url.password = null;
@@ -477,11 +451,11 @@ URLs
   ~~~
 
   ~~~ css
-  url.auth {
-    i: "1234" "john:1234";
-    ii: "4321" "john:4321";
-    iii: null "john";
-    iv: "" "john:";
+  url.password {
+    i: "1234";
+    ii: "4321";
+    iii: null;
+    iv: "";
     v: url(http://:@google.com/);
     vi: url(http://google.com/);
   }
