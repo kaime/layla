@@ -163,9 +163,11 @@ class Color extends Object
 
     rgb
 
-  # "source-over" compositing
+  # "source-over" compositing ????
   #
   # https://www.w3.org/TR/compositing-1/#generalformula   ??????
+  # https://www.w3.org/TR/2003/REC-SVG11-20030114/masking.html#SimpleAlphaBlending
+  # https://en.wikipedia.org/wiki/Alpha_compositing
   @composite: (source, backdrop) ->
     salpha = source.alpha
     balpha = backdrop.alpha
@@ -173,7 +175,8 @@ class Color extends Object
     brgb = backdrop.rgb
 
     compositeChannel = (source, backdrop) ->
-      salpha * source + balpha * backdrop * (1 - salpha)
+      (salpha * source + balpha * backdrop * (1 - salpha)) /
+      (salpha + balpha * (1 - salpha))
 
     composited = (
       compositeChannel srgb[i] / 255, brgb[i] / 255 for i of srgb
