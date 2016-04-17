@@ -166,6 +166,7 @@ class Number extends Object
   TEN  = @TEN  = new @ 10
   ONE_HUNDRED_PERCENT = @ONE_HUNDRED_PERCENT = new @ 100, '%'
   FIFTY_PERCENT = @FIFTY_PERCENT = new @ 50, '%'
+  TEN_PERCENT = @TEN_PERCENT = new @ 10, '%'
 
   '.+@': -> @clone()
 

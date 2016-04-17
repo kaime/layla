@@ -458,13 +458,65 @@
 
 - Returns a copy of the color with increased lightness
 
+  ~~~ lay
+  color.lighten {
+    i: #ff0000.lighten(40%)
+    ii: #ff0000.lighten
+    iii: #000.lighten(200%)
+  }
+  ~~~
+
+  ~~~ css
+  color.lighten {
+    i: #ffcccc;
+    ii: #ff3333;
+    iii: #ffffff;
+  }
+  ~~~
+
 ### `darken`
 
 - Returns a copy of the color with decreased lightnes
 
-### `spin`
+  ~~~ lay
+  color.darken {
+    i: #ff0000.darken(40%)
+    ii: #ff0000.darken
+    iii: #fff.darken(200%)
+  }
+  ~~~
+
+  ~~~ css
+  color.darken {
+    i: #330000;
+    ii: #cc0000;
+    iii: #000000;
+  }
+  ~~~
+
+### `rotate`
 
 - Rotates the hue angle of the color
+
+  ~~~ lay
+  color.rotate {
+    i: #bf406a.rotate(40)
+    ii: #ff0000.rotate(90deg)
+    iii: #bf406a.rotate(180)
+  }
+  ~~~
+
+  ~~~ css
+  color.rotate {
+    i: #bf6b40;
+    ii: #80ff00;
+    iii: #40bf95;
+  }
+  ~~~
+
+### `spin`
+
+- Is an alias of `rotate`
 
   ~~~ lay
   color.spin {
@@ -477,6 +529,26 @@
   color.spin {
     i: #bf6b40;
     ii: #80ff00;
+  }
+  ~~~
+
+### `opposite`
+
+- Returns a copy of the color, rotated 180 degrees
+
+  ~~~ lay
+  color.opposite {
+    i: #bf406a.opposite
+    ii: #000.opposite
+    iii: #fff.opposite
+  }
+  ~~~
+
+  ~~~ css
+  color.opposite {
+    i: #40bf95;
+    ii: #000000;
+    iii: #ffffff;
   }
   ~~~
 

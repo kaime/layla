@@ -636,7 +636,7 @@ class Color extends Object
       that.adjustChannel 'hwb', 1, amount.value, amount.unit
       that
     else
-      throw new TypeError "Bad argument for #{@reprType()}.tint"
+      throw new TypeError "Bad argument for #{@reprType()}.whiten"
 
   '.blacken': (amount = Number.FIFTY_PERCENT) ->
     if amount instanceof Number
@@ -644,7 +644,23 @@ class Color extends Object
       that.adjustChannel 'hwb', 2, amount.value, amount.unit
       that
     else
-      throw new TypeError "Bad argument for #{@reprType()}.shade"
+      throw new TypeError "Bad argument for #{@reprType()}.blacken"
+
+  '.darken': (amount = Number.TEN_PERCENT) ->
+    if amount instanceof Number
+      that = @clone()
+      that.adjustChannel 'hsl', 2, -1 * amount.value, amount.unit
+      that
+    else
+      throw new TypeError "Bad argument for #{@reprType()}.darken"
+
+  '.lighten': (amount = Number.TEN_PERCENT) ->
+    if amount instanceof Number
+      that = @clone()
+      that.adjustChannel 'hsl', 2, amount.value, amount.unit
+      that
+    else
+      throw new TypeError "Bad argument for #{@reprType()}.lighten"
 
   '.light?': -> Boolean.new @lightness >= 50
 
@@ -659,16 +675,21 @@ class Color extends Object
 
   @::['.gray?'] = @::['.grey?']
 
-  '.spin': (amount) ->
+  '.rotate': (amount) ->
     if amount instanceof Number
       amount = amount.convert('deg')
       that = @clone()
       that.adjustChannel 'hsl', 0, amount.value, amount.unit
       that
     else
-      throw new TypeError "Bad argument for #{@reprType()}.saturate"
+      throw new TypeError "Bad argument for #{@reprType()}.rotate"
 
-  @::['.rotate'] = @::['.spin']
+  @::['.spin'] = @::['.rotate']
+
+  '.opposite': ->
+    that = @clone()
+    that.adjustChannel 'hsl', 0, 180
+    that
 
   # https://www.w3.org/TR/WCAG20/#relativeluminancedef
   '.luminance': -> new Number 100 * @luminance, '%'
