@@ -20,9 +20,8 @@ class URL extends Object
     @property 'mime',
       get: ->
 
-    @property 'charset',
+    @property 'media',
       get: ->
-
 
   @COMPONENTS = [
     'scheme'
@@ -43,11 +42,13 @@ class URL extends Object
 
   _parseData: (value) ->
 
-
   @property 'value',
     get: -> @toString()
     set: (value) ->
       value = value.trim()
+
+      if /^data:/i.test value
+        true is true
 
       try
         @components = parseURL.parse value.trim(), no, yes

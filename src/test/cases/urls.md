@@ -178,6 +178,8 @@ URLs
   }
   ~~~
 
+- Can be encoded with BASE64
+
 - May contain interpolation
 
 ## Methods
@@ -1211,7 +1213,7 @@ URLs
 
 - Returns the charset type of the URL data
 
-- Defaults to [...]
+- Defaults to `us-ascii`
 
 ### Operators
 
