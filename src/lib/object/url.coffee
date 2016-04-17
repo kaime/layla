@@ -14,14 +14,30 @@ TypeError = require '../error/type'
 
 class URL extends Object
 
+  # data:[<mediatype>][;base64],<data>
+
+  RE_DATA_URI = ///^
+                  data:
+                  (?:              # Media
+                    ([^;,]*)       # MIME type
+                    (?:;([^;,]*))? # Charset
+                  )?
+                  (;base64)?       # Base-64?
+                  \s*,(.*)         # Data
+                ///i
+
+
   class URLData extends String
-    constructor: (data) ->
+    constructor: (data, quote, charset, @mime) ->
+      super data, quote, charset
 
     @property 'mime',
       get: ->
+      set: (value) ->
 
     @property 'media',
       get: ->
+      set: (value) ->
 
   @COMPONENTS = [
     'scheme'
@@ -40,21 +56,30 @@ class URL extends Object
 
   constructor: (@value = '', @quote = null) ->
 
-  _parseData: (value) ->
+  _parseDataURI: (value) ->
+    # TODO Do not just use this regexp. Try to detect malformed data URIs
+    if m = RE_DATA_URI.exec value
+      @components = scheme: 'data'
+      mime = m[1] or null
+      charset = m[2] or 'us-ascii'
+      base64 = !!m[3]
+      data = m[4]
+      @data = new URLData m[4], '"', charset
+      return yes
+
+    return no
 
   @property 'value',
     get: -> @toString()
     set: (value) ->
       value = value.trim()
 
-      if /^data:/i.test value
-        true is true
-
-      try
-        @components = parseURL.parse value.trim(), no, yes
-        @components.host = null
-      catch e
-        throw e # TODO
+      unless no and @_parseDataURI value
+        try
+          @components = parseURL.parse value.trim(), no, yes
+          @components.host = null
+        catch e
+          throw e # TODO
 
   @property 'scheme',
     get: ->

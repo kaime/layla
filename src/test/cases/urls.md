@@ -165,6 +165,28 @@ URLs
 
   ~~~ lay
   #data-uri {
+    background: url(data:text/plain,Hello%2C%20World!)
+  }
+  ~~~
+
+  ~~~ css
+  #data-uri {
+    background: url(data:text/plain,Hello%2C%20World!);
+  }
+  ~~~
+
+- Can contain plain ASCII text
+
+- Can contain UTF-8 text
+
+- Can contain HTML
+
+- Can contain base-64 encoded text
+
+- Can contain base-64 encoded binary data
+
+  ~~~ lay
+  #data-uri {
     background:url(data:image/gif;base64,R0lGODlhEAAQAMQAAORHHOVSKudfOulrSOp3WOyDZu6QdvCchPGolfO0o/XBs/fNwfjZ0frl3/zy7////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAkAABAALAAAAAAQABAAAAVVICSOZGlCQAosJ6mu7fiyZeKqNKToQGDsM8hBADgUXoGAiqhSvp5QAnQKGIgUhwFUYLCVDFCrKUE1lBavAViFIDlTImbKC5Gm2hB0SlBCBMQiB0UjIQA7)
 
     background:url("data:image/gif;base64,R0lGODlhEAAQAMQAAORHHOVSKudfOulrSOp3WOyDZu6QdvCchPGolfO0o/XBs/fNwfjZ0frl3/zy7////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAkAABAALAAAAAAQABAAAAVVICSOZGlCQAosJ6mu7fiyZeKqNKToQGDsM8hBADgUXoGAiqhSvp5QAnQKGIgUhwFUYLCVDFCrKUE1lBavAViFIDlTImbKC5Gm2hB0SlBCBMQiB0UjIQA7") no-repeat center
@@ -178,9 +200,7 @@ URLs
   }
   ~~~
 
-- Can be encoded with BASE64
-
-- May contain interpolation
+- Support interpolation
 
 ## Methods
 
