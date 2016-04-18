@@ -26,6 +26,25 @@ class Color extends Object
     hwb:  [ HUE, WHITENESS, BLACKNESS ]
     cmyk: [ CYAN, MAGENTA, YELLOW, BLACK ]
 
+  BLEND_MODES = [
+    'normal'
+    'multiply'
+    'screen'
+    'overlay'
+    'hard-light'
+    'soft-light'
+    'darken'
+    'lighten'
+    'difference'
+    'exclusion'
+    'hue'
+    'saturation'
+    'color'
+    'luminosity'
+    'color-dodge'
+    'color-burn'
+  ]
+
   RE_HEX_COLOR  = /#([\da-f]+)/i
   RE_FUNC_COLOR = /([a-z_-][a-z\d_-]*)\s*\((.*)\)/i
 
@@ -397,9 +416,8 @@ class Color extends Object
     source.toHSL backdrop.hue, backdrop.saturation, source.lightness
 
   @blend: (source, backdrop, mode = 'normal') ->
-    method = "blend-#{mode}".replace /(-\w)/g, (m) -> m[1].toUpperCase()
-
-    if method of @
+    if mode in BLEND_MODES
+      method = "blend-#{mode}".replace /(-\w)/g, (m) -> m[1].toUpperCase()
       blent = @[method] source, backdrop
       @composite blent, backdrop
     else
@@ -545,6 +563,8 @@ class Color extends Object
 
     @setChannel space, channel, amount + @getChannel space, channel
 
+    return @
+
   # https://drafts.csswg.org/css-color-4/#luminance
   @property 'luminance',
     get: ->
@@ -624,49 +644,37 @@ class Color extends Object
 
   '.saturate': (amount) ->
     if amount instanceof Number
-      that = @clone()
-      that.adjustChannel 'hsl', 1, amount.value, amount.unit
-      that
+      @clone().adjustChannel 'hsl', 1, amount.value, amount.unit
     else
       throw new TypeError "Bad argument for #{@reprType()}.saturate"
 
   '.desaturate': (amount = Number.ONE_HUNDRED_PERCENT) ->
     if amount instanceof Number
-      that = @clone()
-      that.adjustChannel 'hsl', 1, -1 * amount.value, amount.unit
-      return that
+      @clone().adjustChannel 'hsl', 1, -1 * amount.value, amount.unit
     else
       throw new TypeError "Bad argument for #{@reprType()}.saturate"
 
   '.whiten': (amount = Number.FIFTY_PERCENT) ->
     if amount instanceof Number
-      that = @clone()
-      that.adjustChannel 'hwb', 1, amount.value, amount.unit
-      that
+      @clone().adjustChannel 'hwb', 1, amount.value, amount.unit
     else
       throw new TypeError "Bad argument for #{@reprType()}.whiten"
 
   '.blacken': (amount = Number.FIFTY_PERCENT) ->
     if amount instanceof Number
-      that = @clone()
-      that.adjustChannel 'hwb', 2, amount.value, amount.unit
-      that
+      @clone().adjustChannel 'hwb', 2, amount.value, amount.unit
     else
       throw new TypeError "Bad argument for #{@reprType()}.blacken"
 
   '.darken': (amount = Number.TEN_PERCENT) ->
     if amount instanceof Number
-      that = @clone()
-      that.adjustChannel 'hsl', 2, -1 * amount.value, amount.unit
-      that
+      @clone().adjustChannel 'hsl', 2, -1 * amount.value, amount.unit
     else
       throw new TypeError "Bad argument for #{@reprType()}.darken"
 
   '.lighten': (amount = Number.TEN_PERCENT) ->
     if amount instanceof Number
-      that = @clone()
-      that.adjustChannel 'hsl', 2, amount.value, amount.unit
-      that
+      @clone().adjustChannel 'hsl', 2, amount.value, amount.unit
     else
       throw new TypeError "Bad argument for #{@reprType()}.lighten"
 
@@ -686,18 +694,14 @@ class Color extends Object
   '.rotate': (amount) ->
     if amount instanceof Number
       amount = amount.convert('deg')
-      that = @clone()
-      that.adjustChannel 'hsl', 0, amount.value, amount.unit
-      that
+      @clone().adjustChannel 'hsl', 0, amount.value, amount.unit
     else
       throw new TypeError "Bad argument for #{@reprType()}.rotate"
 
   @::['.spin'] = @::['.rotate']
 
   '.opposite': ->
-    that = @clone()
-    that.adjustChannel 'hsl', 0, 180
-    that
+    @clone().adjustChannel 'hsl', 0, 180
 
   # https://www.w3.org/TR/WCAG20/#relativeluminancedef
   '.luminance': -> new Number 100 * @luminance, '%'
@@ -706,8 +710,7 @@ class Color extends Object
 
   '.invert': ->
     that = @clone()
-    rgb = (255 - channel for channel in that.rgb)
-    that.rgb = rgb
+    that.rgb = (255 - channel for channel in that.rgb)
     that
 
   # http://dev.w3.org/csswg/css-color/#tint-shade-adjusters
@@ -740,8 +743,7 @@ class Color extends Object
     @blend backdrop, mode
 
   # Individual channel accessors
-  '.alpha': ->
-    new Number @alpha
+  '.alpha': -> new Number @alpha
 
   '.alpha=': (value) ->
     if value instanceof Number
@@ -757,8 +759,7 @@ class Color extends Object
     else
       throw new Error "Bad alpha value: #{value}"
 
-  '.alpha?': ->
-    Boolean.new @alpha > 0
+  '.alpha?': -> Boolean.new @alpha > 0
 
   do =>
     make_accessors = (space, index, channel) =>
@@ -783,13 +784,11 @@ class Color extends Object
           channels = @[space]
           channels[index] = value
           @[space] = channels
-
         else
           throw new Error "Bad #{name} channel value: #{value.repr()}"
 
     for space of SPACES
       for channel, index in SPACES[space]
         make_accessors space, index, channel
-
 
 module.exports = Color
