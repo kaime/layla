@@ -97,7 +97,7 @@ class Color extends Object
 
   ###
   ###
-  @hsl2rgb2 = (hsl) ->
+  @hsl2rgb = (hsl) ->
     s = hsl[1] / 100
     l = hsl[2] / 100
 
@@ -126,41 +126,6 @@ class Color extends Object
       r = h2rgb (h + 1 / 3)
       g = h2rgb h
       b = h2rgb (h - 1 / 3)
-
-    [r * 255, g * 255, b * 255]
-
-  ###
-  ###
-  @hsl2rgb = (hsl) ->
-    h = hsl[0] / 360
-    s = hsl[1] / 100
-    l = hsl[2] / 100
-
-    if l <= .5
-      q = l * (s + 1)
-    else
-      q = l + s - l * s
-
-    p = l * 2 - q
-
-    h2rgb = (t) ->
-      if t < 0
-        t++
-      else if t > 1
-        t--
-
-      if t * 6 < 1
-        p + (q - p) * 6 * t
-      else if t * 2 < 1
-        q
-      else if t * 3 < 2
-        p + (q - p) * (2 / 3 - t) * 6
-      else
-        p
-
-    r = h2rgb h + 1 / 3
-    g = h2rgb h
-    b = h2rgb h - 1/3
 
     [r * 255, g * 255, b * 255]
 
