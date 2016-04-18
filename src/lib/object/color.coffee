@@ -1,8 +1,9 @@
-Object  = require '../object'
-Null    = require './null'
-Boolean = require './boolean'
-Number  = require './number'
-String  = require './string'
+Object     = require '../object'
+Null       = require './null'
+Boolean    = require './boolean'
+Number     = require './number'
+String     = require './string'
+ValueError = require '../error/value'
 
 class Color extends Object
 
@@ -28,7 +29,7 @@ class Color extends Object
   RE_HEX_COLOR  = /#([\da-f]+)/i
   RE_FUNC_COLOR = /([a-z_-][a-z\d_-]*)\s*\((.*)\)/i
 
-  {round, max, min, abs, sqrt} = Math
+  {round, max, min, abs, sqrt, pow} = Math
 
   @rgb2hsl = (rgb) ->
     r = rgb[0] / 255
@@ -96,7 +97,7 @@ class Color extends Object
 
   ###
   ###
-  @hsl2rgb = (hsl) ->
+  @hsl2rgb2 = (hsl) ->
     s = hsl[1] / 100
     l = hsl[2] / 100
 
@@ -104,7 +105,7 @@ class Color extends Object
       r = g = b = l # achromatic
     else
       h = hsl[0] / 360
-      q = if l < .5 then l * (1 + s) else l + s - l * s
+      q = if l <= .5 then l * (1 + s) else l + s - l * s
       p = 2 * l - q
 
       h2rgb = (t) ->
@@ -113,11 +114,11 @@ class Color extends Object
         else if t > 1
           t--
 
-        if t < 1 / 6
+        if t * 6 < 1
           p + (q - p) * 6 * t
-        else if t < 1 / 2
+        else if t * 2 < 1
           q
-        else if t < 2 / 3
+        else if t * 3 < 2
           p + (q - p) * (2 / 3 - t) * 6
         else
           p
@@ -125,6 +126,41 @@ class Color extends Object
       r = h2rgb (h + 1 / 3)
       g = h2rgb h
       b = h2rgb (h - 1 / 3)
+
+    [r * 255, g * 255, b * 255]
+
+  ###
+  ###
+  @hsl2rgb = (hsl) ->
+    h = hsl[0] / 360
+    s = hsl[1] / 100
+    l = hsl[2] / 100
+
+    if l <= .5
+      q = l * (s + 1)
+    else
+      q = l + s - l * s
+
+    p = l * 2 - q
+
+    h2rgb = (t) ->
+      if t < 0
+        t++
+      else if t > 1
+        t--
+
+      if t * 6 < 1
+        p + (q - p) * 6 * t
+      else if t * 2 < 1
+        q
+      else if t * 3 < 2
+        p + (q - p) * (2 / 3 - t) * 6
+      else
+        p
+
+    r = h2rgb h + 1 / 3
+    g = h2rgb h
+    b = h2rgb h - 1/3
 
     [r * 255, g * 255, b * 255]
 
@@ -245,10 +281,7 @@ class Color extends Object
   Overlay is the inverse of the `hard-light` blend mode.
   ###
   @blendChannelOverlay: (source, backdrop) ->
-    if source < .5
-      2 * source * backdrop
-    else
-      1 - 2 * (1 - source) * (1 - backdrop)
+    @blendChannelHardLight backdrop, source
 
   @blendOverlay: (source, backdrop) ->
     @blendSeparate source, backdrop, @blendChannelOverlay
@@ -287,7 +320,7 @@ class Color extends Object
     else if source is 1
       1
     else
-      min 1, backdrop / (1 - source)
+      min(1, backdrop / (1 - source))
 
   @blendColorDodge: (source, backdrop) ->
     @blendSeparate source, backdrop, @blendChannelColorDodge
@@ -312,7 +345,10 @@ class Color extends Object
   effect is similar to shining a harsh spotlight on the backdrop.
   ###
   @blendChannelHardLight: (source, backdrop) ->
-    @blendChannelOverlay backdrop, source
+    if source <= .5
+      @blendChannelMultiply backdrop, 2 * source
+    else
+      @blendChannelScreen backdrop, 2 * source - 1
 
   @blendHardLight: (source, backdrop) ->
     @blendSeparate source, backdrop, @blendChannelHardLight
@@ -322,17 +358,17 @@ class Color extends Object
   effect is similar to shining a diffused spotlight on the backdrop
 
   https://en.wikipedia.org/wiki/Blend_modes#Soft_Light
+
   ###
   @blendChannelSoftLight: (source, backdrop) ->
-    if backdrop <= .5
-      source - (1 - 2 * backdrop) * source * (1 - source)
+    if source <= .5
+      backdrop - (1 - 2 * source) * backdrop * (1 - backdrop)
     else
-      if source <= .25
-        d = ((16 * source - 12) * source + 4) * source
+      if backdrop <= .25
+        d = ((16 * backdrop - 12) * backdrop + 4) * backdrop
       else
-        d = sqrt source
-
-      source + (2 * backdrop - 1) * (d - source)
+        d = sqrt backdrop
+      backdrop + (2 * source - 1) * (d - backdrop)
 
   @blendSoftLight: (source, backdrop) ->
     @blendSeparate source, backdrop, @blendChannelSoftLight
@@ -402,7 +438,7 @@ class Color extends Object
       blent = @[method] source, backdrop
       @composite blent, backdrop
     else
-      throw new Error "Bad mode for Color.blend: #{mode}"
+      throw new ValueError "Bad mode for Color.blend: #{mode}"
 
   toHSL: (hue, saturation, lightness) ->
     that = @clone()
@@ -544,10 +580,17 @@ class Color extends Object
 
     @setChannel space, channel, amount + @getChannel space, channel
 
-  # TODO Should I first try with current color space if it's not
-  # rgb?
+  # https://drafts.csswg.org/css-color-4/#luminance
   @property 'luminance',
-    get: -> .2126 * @red / 255 + .7152 * @green / 255 + .0722 * @blue / 255
+    get: ->
+      [r, g, b] = [@red, @green, @blue].map (channel, i) ->
+        channel /= 255
+        if channel <= .03928
+          channel / 12.92
+        else
+          pow (channel + .055) / 1.055, 2.4
+
+      return .2126 * r + .7152 * g + .0722 * b
 
   composite: (backdrop) -> @constructor.composite @, backdrop
 
