@@ -297,6 +297,13 @@ class Color extends Object
   ###
   Brightens the backdrop color to reflect the source color. Blending with black
   produces no changes.
+
+  if(Cb == 0)
+    B(Cb, Cs) = 0
+  else if(Cs == 1)
+    B(Cb, Cs) = 1
+  else
+    B(Cb, Cs) = min(1, Cb / (1 - Cs))
   ###
   @blendChannelColorDodge: (source, backdrop) ->
     if backdrop is 0
@@ -304,7 +311,7 @@ class Color extends Object
     else if source is 1
       1
     else
-      min(1, backdrop / (1 - source))
+      min 1, backdrop / (1 - source)
 
   @blendColorDodge: (source, backdrop) ->
     @blendSeparate source, backdrop, @blendChannelColorDodge
@@ -312,6 +319,13 @@ class Color extends Object
   ###
   Darkens the backdrop color to reflect the source color. Blending with white
   produces no changes.
+
+  if(Cb == 1)
+    B(Cb, Cs) = 1
+  else if(Cs == 0)
+    B(Cb, Cs) = 0
+  else
+    B(Cb, Cs) = 1 - min(1, (1 - Cb) / Cs)
   ###
   @blendChannelColorBurn: (source, backdrop) ->
     if backdrop is 1
@@ -319,7 +333,7 @@ class Color extends Object
     else if source is 0
       0
     else
-      min 1, (1 - backdrop) / source
+      1 - min 1, (1 - backdrop) / source
 
   @blendColorBurn: (source, backdrop) ->
     @blendSeparate source, backdrop, @blendChannelColorBurn
@@ -380,12 +394,134 @@ class Color extends Object
   @blendExclusion: (source, backdrop) ->
     @blendSeparate source, backdrop, @blendChannelExclusion
 
-  ###
-  Creates a color with the hue of the source color and the saturation and
-  luminosity of the backdrop color.
-  ###
-  @blendHue: (source, backdrop) ->
-    source.toHSL source.hue, backdrop.saturation, backdrop.lightness
+
+  do =>
+    getLum = (red, green, blue) ->
+      .3 * red + .59 * green + .11 * blue
+
+    clipColor = (red, green, blue) ->
+      l = getLum red, green, blue
+      n = min red, green, blue
+      x = max red, green, blue
+
+      if n < 0
+        red   = l + (((red - l) * l) / (l - n))
+        green = l + (((green - l) * l) / (l - n))
+        blue  = l + (((blue - l) * l) / (l - n))
+
+      if x > 1
+        red = l + (((red - l) * (1 - l)) / (x - l))
+        green = l + (((green - l) * (1 - l)) / (x - l))
+        blue = l + (((blue - l) * (1 - l)) / (x - l))
+
+      [red, green, blue]
+
+    setLum = (red, green, blue, l) ->
+      d = l - getLum red, green, blue
+      red += d
+      green += d
+      blue += d
+
+      clipColor red, green, blue
+
+    getSat =(red, green, blue) ->
+      (max red, green, blue) - (min red, green, blue)
+
+    setSat = (red, green, blue, sat) ->
+      rgb = [red, green, blue]
+
+      mx = max red, green, blue
+      mn = min red, green, blue
+
+      mn =
+        if mn is red
+          0
+        else if mn is green
+          1
+        else
+          2
+      mx =
+        if mn is red
+          0
+        else if mn is green
+          1
+        else
+          2
+
+      md =
+        if 0 is min mn, mx
+          if 1 is max mn, mx
+            2
+          else
+            1
+        else
+          0
+
+      if rgb[mx] > rgb[mn]
+        rgb[md] = ((rgb[md] - rgb[mn]) * sat) / (rgb[mx] - rgb[mn])
+        rgb[mx] = sat
+      else
+        rgb[md] = rgb[mx] = 0
+
+      rgb[mn] = 0
+
+      return rgb
+
+    ###
+    Creates a color with the hue of the source color and the saturation and
+    luminosity of the backdrop color.
+
+    B(Cb, Cs) = SetLum(SetSat(Cs, Sat(Cb)), Lum(Cb))
+    ###
+    @blendHue = (source, backdrop) ->
+      source_rgb = source.rgb.map (ch) -> ch / 255
+      backdrop_rgb = backdrop.rgb.map (ch) -> ch / 255
+
+      sat = getSat backdrop_rgb...
+      lum = getLum backdrop_rgb...
+
+      blent_rgb = setLum(setSat(source_rgb..., sat)..., lum)
+
+      blent_rgb = blent_rgb.map (ch) -> ch * 255
+      blent = source.clone()
+      blent.rgb = blent_rgb
+      blent.composite backdrop
+
+    ###
+    Creates a color with the luminosity of the source color and the hue and
+    saturation of the backdrop color. This produces an inverse effect to that of
+    the `color` mode.
+
+    B(Cb, Cs) = SetLum(Cb, Lum(Cs))
+    ###
+    @blendLuminosity = (source, backdrop) ->
+      source_rgb = source.rgb.map (ch) -> ch / 255
+      backdrop_rgb = backdrop.rgb.map (ch) -> ch / 255
+      source_lum = getLum source_rgb...
+      blent_rgb = setLum backdrop_rgb..., source_lum
+      blent_rgb = blent_rgb.map (ch) -> ch * 255
+      blent = backdrop.clone()
+      blent.rgb = blent_rgb
+      blent.composite backdrop
+
+    ###
+    Creates a color with the hue and saturation of the source color and the
+    luminosity of the backdrop color.
+
+    This preserves the gray levels of the backdrop and is useful for coloring
+    monochrome images or tinting color images.
+
+    B(Cb, Cs) = SetLum(Cs, Lum(Cb))
+    ###
+    @blendColor = (source, backdrop) ->
+      source_rgb = source.rgb.map (ch) -> ch / 255
+      backdrop_rgb = backdrop.rgb.map (ch) -> ch / 255
+      lum = getLum backdrop_rgb...
+      blent_rgb = setLum source_rgb..., lum
+      blent_rgb = blent_rgb.map (ch) -> ch * 255
+      blent = source.clone()
+      blent.rgb = blent_rgb
+      blent.composite backdrop
 
   ###
   Creates a color with the saturation of the source color and the hue and
@@ -396,24 +532,6 @@ class Color extends Object
   ###
   @blendSaturation: (source, backdrop) ->
     source.toHSL backdrop.hue, source.saturation, backdrop.lightness
-
-  ###
-  Creates a color with the hue and saturation of the source color and the
-  luminosity of the backdrop color.
-
-  This preserves the gray levels of the backdrop and is useful for coloring
-  monochrome images or tinting color images.
-  ###
-  @blendColor: (source, backdrop) ->
-    source.toHSL source.hue, source.saturation, backdrop.lightness
-
-  ###
-  Creates a color with the luminosity of the source color and the hue and
-  saturation of the backdrop color. This produces an inverse effect to that of
-  the `color` mode.
-  ###
-  @blendLuminosity: (source, backdrop) ->
-    source.toHSL backdrop.hue, backdrop.saturation, source.lightness
 
   @blend: (source, backdrop, mode = 'normal') ->
     if mode in BLEND_MODES
