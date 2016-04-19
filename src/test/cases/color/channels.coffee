@@ -97,26 +97,6 @@ for channel in channels
     (fence 'css', rule_set channel, css)
   )
 
-  # ?
-  md += "### `#{channel}?`\n\n"
-  md += "- Returns `true` if the color has any #{channel} \
-         (ie: its `#{channel}` is > 0)\n\n"
-
-  lay = css = ''
-
-  for sample, i in samples
-    actual = if (sample[channel]()) > 0 then 'true' else 'false'
-    r = romanize i + 1
-    lay += "#{r}: #{sample.hexString().toLowerCase()}.#{channel}?"
-    lay += "\n"
-
-    css += "#{r}: #{actual};\n"
-
-  md += indent (
-    (fence 'lay', rule_set channel, lay) +
-    (fence 'css', rule_set channel, css)
-  )
-
   # Setter
   md += "### `#{channel}=`\n\n"
   md += "- Adjusts the `#{channel}` channel of the color\n\n"

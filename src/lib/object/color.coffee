@@ -678,8 +678,8 @@ class Color extends Object
     else
       throw new TypeError "Bad argument for #{@reprType()}.lighten"
 
+  # TODO: Use @luminance instead of @lightness?
   '.light?': -> Boolean.new @lightness >= 50
-
   '.dark?': -> Boolean.new @lightness < 50
 
   '.grey': -> @desaturate()
@@ -759,17 +759,12 @@ class Color extends Object
     else
       throw new Error "Bad alpha value: #{value}"
 
-  '.alpha?': -> Boolean.new @alpha > 0
-
   do =>
     make_accessors = (space, index, channel) =>
       name = channel.name
 
       @::[".#{name}"] ?= ->
         new Number @[space][index], channel.unit
-
-      @::[".#{name}?"] ?= ->
-        Boolean.new @[space][index] > 0
 
       @::[".#{name}="] ?= (value) ->
         if value instanceof Number
