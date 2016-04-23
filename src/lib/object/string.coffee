@@ -7,12 +7,40 @@ TypeError  = require '../error/type'
 
 class String extends Object
 
+  RE_ASCII = /^[\x00-\x7F]*$/
+
   QUOTE_REGEXP = (str) -> str.replace /[.?*+^$[\]\\(){}|-]/g, "\\$&"
 
-  constructor: (@value = '', @quote = null) ->
+  @fromBase64: (str) ->
+
+  constructor: (@value = '', @quote = null, @charset = 'utf-8') ->
 
   @property 'length',
     get: -> @value.length
+
+  @property 'charset',
+    get: ->
+      if (@_charset is 'us-ascii') and @isASCII()
+        'us-ascii'
+      else
+        'utf-8'
+
+    set: (charset) ->
+      charset = charset.toLowerCase()
+
+      switch charset
+        when 'ascii', 'us-ascii'
+          unless @isASCII()
+            throw new Error """
+              Cannot set charset of string to `#{charset}`: the string \
+              contains non-ascii characters"""
+          @_charset = 'us-ascii'
+        when 'utf-8', 'utf8'
+          @_charset = 'utf-8'
+        else
+          throw new Error "Bad string charset: '#{charset}'"
+
+  isASCII: -> RE_ASCII.test @value
 
   isEmpty: -> @length is 0
 
@@ -23,6 +51,8 @@ class String extends Object
     letters is (letters.split '').reverse().join ''
 
   toNumber: -> Number.fromString @value
+
+  toBase64: ->
 
   isNumeric: -> !!(try @toNumber())
 
@@ -178,6 +208,10 @@ class String extends Object
   '.string': -> @clone()
 
   '.numeric?': -> Boolean.new @isNumeric()
+
+  '.charset': -> new String @charset, @quote or '"'
+
+  '.ascii?': -> Boolean.new @isASCII()
 
   '.reverse': -> @clone (@value.split '').reverse().join ''
 
