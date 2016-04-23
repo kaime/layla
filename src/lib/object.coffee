@@ -33,6 +33,12 @@ class Object extends Class
         """
       )
 
+  set: (properties) ->
+    for k of properties
+      @[k] = properties[k]
+
+    return @
+
   reprValue: -> ''
 
   reprType: -> @constructor.reprType()
