@@ -292,10 +292,10 @@
     foo: not 3.divisible-by?(2)
     foo: 3.4.divisible-by?(1.70)
     foo: 3.divisible-by?(1.5)
-    foo: 4.divisible-by(-2)?
-    foo: -49.divisible-by(7)?
-    foo: 0.divisible-by(7)?
-    foo: not 0.divisible-by(0)?
+    foo: 4.divisible-by?(-2)
+    foo: -49.divisible-by?(7)
+    foo: 0.divisible-by?(7)
+    foo: not 0.divisible-by?(0)
   }
   ~~~~
 
@@ -316,10 +316,10 @@
 
   ~~~ lay
   number.divisible-by {
-    i: 20cm.divisible-by(2)?
-    ii: 20cm.divisible-by(2mm)?
-    iii: 20cm.divisible-by(2in)?
-    iv: 20cm.divisible-by(1s)?
+    i: 20cm.divisible-by?(2)
+    ii: 20cm.divisible-by?(2mm)
+    iii: 20cm.divisible-by?(2in)
+    iv: 20cm.divisible-by?(1s)
   }
   ~~~
 
@@ -578,7 +578,7 @@
 
   ~~~ lay
   number.round {
-    foo: 0.round(99) 1.001.round(2) 3.141592653589793rad.round(6).unquoted
+    foo: 0.round(99) 1.001.round(2) 3.141592653589793rad.round(6).raw
   }
   ~~~
 
@@ -1369,22 +1369,22 @@
   ~~~ lay
   number.roman {
     for n in 1..9 {
-      `{n.roman.lower-case}`: n
+      #{n.roman.lower-case}: n
     }
 
     for n in 1..5 {
-      `{(n * 10).roman.lower-case}`: n * 10
-      `{(n * 10 + 1).roman.lower-case}`: n * 10 + 1
-      `{(n * 10 + 5).roman.lower-case}`: n * 10 + 5
-      `{(n * 10 + 9).roman.lower-case}`: n * 10 + 9
+      #{(n * 10).roman.lower-case}: n * 10
+      #{(n * 10 + 1).roman.lower-case}: n * 10 + 1
+      #{(n * 10 + 5).roman.lower-case}: n * 10 + 5
+      #{(n * 10 + 9).roman.lower-case}: n * 10 + 9
     }
 
     for n in 1..10 {
-      `{(n * 100).roman.lower-case}`: n * 100
+      #{(n * 100).roman.lower-case}: n * 100
     }
 
     for n in 2000, 3000 {
-      `{n.roman.lower-case}`: n
+      #{n.roman.lower-case}: n
     }
   }
   ~~~

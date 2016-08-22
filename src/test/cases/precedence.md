@@ -87,7 +87,7 @@
   body {
     foo: 13;
     bar: 9px;
-    baz: 'nanana...';
+    baz: "nanana...";
   }
 
   body {
@@ -215,8 +215,8 @@
 
   ~~~ css
   [op="~"] {
-    foo: 'abc';
-    foo: 'abc';
+    foo: "abc";
+    foo: "abc";
   }
   ~~~
 

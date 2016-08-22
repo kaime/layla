@@ -1,5 +1,3 @@
-VERSION    = require './version'
-
 Class      = require './class'
 Parser     = require './parser'
 Context    = require './context'
@@ -7,11 +5,12 @@ Evaluator  = require './evaluator'
 Emitter    = require './emitter'
 CSSEmitter = require './emitter/css'
 CLIEmitter = require './emitter/cli'
-Node       = require './node'
+Node       = require './ast/node'
 Object     = require './object'
 Document   = require './object/document'
 String     = require './object/string'
 Error      = require './error'
+VERSION    = require './version'
 
 Normalizer = require './css/normalizer'
 
@@ -54,7 +53,7 @@ class Layla
   emit: (node) -> @emitter.emit node
 
   # This is a shortcut subject to deprecation
-  compile: (source) ->
-    @emit @normalize @evaluate @parse source
+  compile: (source, file = null) ->
+    @emit @normalize @evaluate @parse source, file
 
 module.exports = Layla

@@ -111,11 +111,16 @@ do ->
       supah.call @, other, etc...
 
 String::['.split'] = (separator, limit = Null.null) ->
-  if separator instanceof RegExp
+  if not separator
+    reg = null
+  else if separator instanceof RegExp
     reg = separator.value
   else if separator instanceof String
-    reg = RegExp.escape separator.value
-    reg = new global.RegExp "#{reg}+"
+    if separator.isEmpty()
+      reg = ''
+    else
+      reg = RegExp.escape separator.value
+      reg = new global.RegExp "#{reg}+"
   else
     throw new TypeError 'Bad `separator` argument for `String.split`'
 
@@ -134,8 +139,6 @@ String::['.split'] = (separator, limit = Null.null) ->
   new List chunks
 
 do ->
-  supah = String::['./']
-
   String::['./'] = (separator) ->
     if separator instanceof RegExp
       reg = separator.value
@@ -143,7 +146,7 @@ do ->
       reg = RegExp.escape separator.value
       reg = new global.RegExp "#{reg}+"
     else
-      return supah.apply this, arguments
+      throw new TypeError "Cannot divide string by a [#{separator.reprType()}]"
 
     @['.split'] separator
 

@@ -20,6 +20,8 @@ class Enumerable extends Object
 
   lastKey: -> @NOT_IMPLEMENTED
 
+  hasKey: (key) -> @NOT_IMPLEMENTED
+
   randomKey: -> @NOT_IMPLEMENTED
 
   each: -> @NOT_IMPLEMENTED

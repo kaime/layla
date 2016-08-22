@@ -10,6 +10,8 @@ class Indexed extends Enumerable
 
   lastKey: -> if 0 < (length = @length()) then length - 1 else null
 
+  hasKey: (key) -> 0 <= key < @length()
+
   currentKey: ->
     if 0 <= @index < @length()
       @index

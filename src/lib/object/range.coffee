@@ -1,10 +1,11 @@
-Indexed   = require './indexed'
-Null      = require './null'
-Boolean   = require './boolean'
-List      = require './list'
-Number    = require './number'
-String    = require './string'
-TypeError = require '../error/type'
+Indexed        = require './indexed'
+Null           = require './null'
+Boolean        = require './boolean'
+List           = require './list'
+Number         = require './number'
+String         = require './string'
+UnquotedString = require './string/unquoted'
+TypeError      = require '../error/type'
 
 class Range extends Indexed
 
@@ -95,7 +96,7 @@ class Range extends Indexed
 
     return @
 
-  '.unit': -> if @unit then new String @unit else Null.null
+  '.unit': -> if @unit then new UnquotedString @unit else Null.null
 
   '.unit?': -> Boolean.new @unit
 

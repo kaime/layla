@@ -7,7 +7,7 @@ ImportError = '../error/import'
 class SourceImporter extends Importer
 
   parse: (source) ->
-    throw new ImportError  "Don't know how to parse"
+    throw new ImportError "Don't know how to parse"
 
   canImport: (uri, context) -> context.canLoad uri
 

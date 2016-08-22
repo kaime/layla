@@ -28,6 +28,9 @@ class Boolean extends Object
 
 Object::toBoolean = -> yes
 
+# TODO should throw an exception ("Cannot compare")?
+Object::isEqual = (other) -> other is @
+
 Object::['.is'] = (other) -> Boolean.new @isEqual other
 
 Object::['.isnt'] = (other) -> Boolean.new not @isEqual other

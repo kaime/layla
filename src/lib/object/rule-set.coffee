@@ -1,5 +1,5 @@
-Rule   = require './rule'
-String = require './string'
+Rule         = require './rule'
+QuotedString = require './string/quoted'
 
 class RuleSet extends Rule
 
@@ -16,9 +16,9 @@ class RuleSet extends Rule
 
   clone: ->
     that = super
-    that.selector = [].concat @selector
+    that.selector = @selector.clone()
     that
 
-  '.selector': -> new String @selector.join ',\n'
+  '.selector': -> new QuotedString @selector.toString()
 
 module.exports = RuleSet
