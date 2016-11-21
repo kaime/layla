@@ -143,7 +143,7 @@ uncoffee = (source) ->
   coffee.compile source, bare: yes, header: no
 
 test = (path, source = SOURCE, callback = done) ->
-  path = "test/#{path}"
+  path = "test/#{path}/**/index.coffee"
 
   args = [
     '--slow 500'
