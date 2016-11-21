@@ -1,5 +1,4 @@
-Parentheses
-===========
+# Parentheses
 
 - Can be used to group expressions
 

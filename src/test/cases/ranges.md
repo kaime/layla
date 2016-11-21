@@ -1,5 +1,4 @@
-Ranges
-======
+# Ranges
 
 - Are made with the `..` operator between two numbers
 

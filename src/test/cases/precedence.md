@@ -354,7 +354,7 @@
   }
   ~~~
 
-## ` `
+## Whitespace
 
 - Has precedence over `,`
 

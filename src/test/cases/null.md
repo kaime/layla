@@ -1,5 +1,4 @@
-Null
-====
+# Null
 
 - Is always falsy
 

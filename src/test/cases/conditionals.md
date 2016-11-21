@@ -1,5 +1,4 @@
-Conditionals
-============
+# Conditionals
 
 ## `if`
 

@@ -1,5 +1,4 @@
-Documents
-=========
+# Documents
 
 - Can be empty
 
@@ -8,4 +7,3 @@ Documents
 
   ~~~ css
   ~~~
-

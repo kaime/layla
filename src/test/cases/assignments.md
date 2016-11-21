@@ -1,5 +1,4 @@
-Assignments
-===========
+# Assignments
 
 - `=` performs a "regular" assignment
 

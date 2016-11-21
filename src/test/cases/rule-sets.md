@@ -1,5 +1,4 @@
-Rule sets
-=========
+# Rule sets
 
 - Can have an empty body
 

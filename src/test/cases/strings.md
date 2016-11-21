@@ -1,5 +1,4 @@
-Strings
-=======
+# Strings
 
 ## Quoted strings
 

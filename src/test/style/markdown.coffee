@@ -17,15 +17,17 @@ describe 'Markdown', ->
 
       if res
         for f of res
-          if typeof res[f] is 'object'
-            err = res[f][0]
+          err = res[f]
 
-            message = """
-              #{err.errorDetail} @ \
-              #{file}:#{err.lineNumber}
-              """
+          if typeof err is 'object'
+            if err.length
+              err = err[0]
 
-            throw new Error message
+              message = err.ruleDescription
+              message += "- #{err.errorDetail}" if err.errorDetail
+              message += " @ #{file}:#{err.lineNumber}"
+
+              throw new Error message
 
   doDir = (dir) ->
     for name in fs.readdirSync dir
