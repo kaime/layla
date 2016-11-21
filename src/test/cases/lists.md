@@ -1,5 +1,4 @@
-Lists
-=====
+# Lists
 
 - Can be made with spaces
 

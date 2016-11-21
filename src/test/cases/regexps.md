@@ -1,5 +1,4 @@
-Regular expressions
-===================
+# Regular expressions
 
 - Are made with `/.../`
 
@@ -251,7 +250,6 @@ Regular expressions
     ii: lorem ipsum dolor;
   }
   ~~~
-
 
 ### `insensitive?`
 

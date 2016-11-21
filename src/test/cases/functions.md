@@ -1,5 +1,4 @@
-Functions
-=========
+# Functions
 
 - Are made with an argument list followed by a block
 

@@ -1,5 +1,4 @@
-Blocks
-======
+# Blocks
 
 - Are declared with `{ ... }`
 

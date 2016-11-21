@@ -229,37 +229,89 @@ class URL extends URI
     URL::[".#{alias}"] = URL::[".#{@ALIAS_COMPONENTS[alias]}"]
 
   ###
-  Returns `true` if the URL is a fully qualified URL, ie: it has a scheme
+  Returns `true` if the URL is a fully qualified URL, ie: it has a scheme.
   ###
   '.absolute?': ->
     Boolean.new @scheme isnt null
 
   ###
-  Returns `true` if the URL is a relative URL, ie: it has no scheme
+  Returns `true` if the URL is a relative URL, ie: it has no scheme.
   ###
   '.relative?': ->
     Boolean.new @scheme is null
 
   ###
-  Returns `true` if the host is a v4 IP
+  Returns `true` if the host is a valid IPv4 address.
+
+  Examples:
+    ```
+    url("http://example.org").ipv4?
+    // false
+
+    url("//[3ffe:2a00:100:7031::1]").ipv4?
+    // false
+
+    url("//127.0.0.1").ipv4?
+    // true
+    ```
   ###
   '.ipv4?': ->
     Boolean.new Net.isIPv4 @host
 
   ###
-  Returns `true` if the host is a v6 IP
+  Returns `true` if the host is a valid IPv6 address.
+
+  Examples:
+    ```
+    url("http://example.org").ipv4?
+    // false
+
+    url("//[3ffe:2a00:100:7031::1]").ipv4?
+    // true
+
+    url("//127.0.0.1").ipv4?
+    // false
+    ```
   ###
   '.ipv6?': ->
     Boolean.new Net.isIPv6 @host
 
   ###
-  Returns `true` if the host is an IP (v4 or v6)
+  Returns `true` if the host is a valid IP (either v4 or v6)
+
+  Examples:
+    ```
+    url("http://example.org").ip?
+    // false
+
+    url("//[3ffe:2a00:100:7031::1]").ip?
+    // true
+
+    url("//127.0.0.1").ip?
+    // true
+    ```
   ###
   '.ip?': ->
     Boolean.new @isIP()
 
   ###
-  Returns `true` if the URL has a host and it's not an IP address.
+  Returns the host if the URL has one and it's not an IP address, or `null`
+  otherwise.
+
+  Examples:
+    ```
+    url("http://example.org/home").domain
+    // "example.org"
+
+    url("//www.example.net").domain
+    // "www.example.org"
+
+    url("/home.html").domain
+    // null
+
+    url("https://127.0.0.1").domain
+    // null
+    ```
   ###
   '.domain': ->
     if domain = @domain
@@ -269,12 +321,24 @@ class URL extends URI
 
   ###
   Returns a copy of the URL with the scheme set to `http`
+
+  Example:
+    ```
+    url("https://example.org/404").http
+    // url("http://example.org/404")
+    ```
   ###
   '.http': ->
     @copy scheme: 'http'
 
   ###
   Returns a copy of the URL with the scheme set to `https`
+
+  Example:
+    ```
+    url("http://example.org/404").https
+    // url("https://example.org/404")
+    ```
   ###
   '.https': ->
     @copy scheme: 'https'

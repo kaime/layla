@@ -169,6 +169,10 @@ uncoffee = (source) ->
     }
   }
 
+concat = (sources, dest, callback = done) ->
+  contents = (sources.map (path) -> fs.readFileSync path).join '\n\n'
+  write dest, contents, callback
+
 test = (path, source = no, callback = done) ->
   path = "test/#{path}"
 
@@ -238,10 +242,29 @@ MODULES.forEach (module) ->
           else
             done()
 
-task 'build:license', 'Build license file', ->
+task 'build:license', 'Build License file', ->
   queue ->
-    log 'task', 'Building license'
+    log 'task', 'Building License file'
     write './License.md', require './src/license'
+
+task 'build:readme', 'Build the Readme file', ->
+  queue ->
+    log 'task', 'Building Readme file'
+    sections = [
+      'header',
+      'intro', 'overview',
+      'installation', 'usage',
+      'credits', 'footer'
+    ]
+    files = sections.map (section) -> "./src/doc/#{section}.md"
+    concat files, './Readme.md'
+
+task 'build:gh-pages', 'Build GitHub Pages files', ->
+
+task 'build:docs', 'Build all documentation files', ->
+  invoke 'build:license'
+  invoke 'build:readme'
+  invoke 'build:gh-pages'
 
 task 'build:index', 'Build root `index.js`', ->
   queue ->
@@ -256,9 +279,9 @@ task 'build:all', 'Build everything', ->
   for module in MODULES
     invoke "build:#{module}"
 
-  invoke 'build:license'
   invoke 'build:module'
   invoke 'build:test'
+  invoke 'build:docs'
 
 task 'build', 'Alias of build:all', ->
   invoke 'build:all'

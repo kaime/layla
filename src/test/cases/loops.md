@@ -1,5 +1,4 @@
-Loops
-=====
+# Loops
 
 ## `while` loops
 

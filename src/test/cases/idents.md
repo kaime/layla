@@ -1,5 +1,4 @@
-Idents
-======
+# Idents
 
 - Can contain letters, numbers, `[$-_]` and end with `?`
 
