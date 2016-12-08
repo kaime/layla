@@ -1074,7 +1074,23 @@ class BaseParser extends Parser
   ###
   Parse a single name at the left side of a property declaration.
   ###
-  parsePropertyName: -> @parseUnquotedString()
+  parsePropertyName: ->
+    # IE hacks
+    start = @token
+
+    bang = ''
+
+    while @token.kind in [T.ASTERISK, T.PLUS]
+      bang += @token.value
+      @next()
+
+    if name = @parseUnquotedString()
+      name.prepend bang
+    else
+      @move start
+
+    return name
+
 
   ###
   Parse a comma separated list names at the left side of a property declaration.
