@@ -528,6 +528,20 @@ Rule sets
   }
   ~~~
 
+- Shadow-piercing descendant combinator
+
+  ~~~ lay
+  x-foo >>> span {
+    max-width: 640px
+  }
+  ~~~
+
+  ~~~ css
+  x-foo >>> span {
+    max-width: 640px;
+  }
+  ~~~
+
 - They can appear at the begining of the selector
 
   ~~~ lay

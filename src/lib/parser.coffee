@@ -124,6 +124,7 @@ class Parser extends Class
     T.GT
     T.TILDE
     T.PLUS
+    T.PIERCING
     # T.H_WHITESPACE
   ]
 

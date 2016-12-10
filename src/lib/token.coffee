@@ -20,6 +20,7 @@ class Token extends Class
   @CARET_EQUAL     = 'CaretEqual'
   @DOLLAR_EQUAL    = 'DollarEqual'
   @ASTERISK_EQUAL  = 'AsteriskEqual'
+  @PIERCING        = 'Piercing'
   @LT_EQUAL        = 'LTEqual'
   @GT_EQUAL        = 'GTEqual'
   @PIPE            = 'Pipe'
