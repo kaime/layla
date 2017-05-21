@@ -1,9 +1,11 @@
 ###
-The base for all Layla classes (except for the core `Layla` class itself).
+The base for most Layla classes.
+
+TODO Rename to `Base`? `Class` is a bit agressive IMHO
 ###
 class Class
 
-  @NOT_IMPLEMENTED: (name) -> throw new NotImplementedError
+  @NOT_IMPLEMENTED: (name) -> throw new Error 'Not implemented'
 
   { getOwnPropertyDescriptor, defineProperty } = Object
 

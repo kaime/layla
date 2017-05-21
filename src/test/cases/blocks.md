@@ -250,12 +250,6 @@ Blocks
     for $p in $b.properties {
       -foo-#{$p.name}: $p.value
     }
-
-    .unique {
-      for $p in $b.properties.unique {
-        -foo-#{$p.name}: $p.value
-      }
-    }
   }
   ~~~
 
@@ -264,12 +258,6 @@ Blocks
     -foo-border: 1px solid red;
     -foo-color: #666666;
     -foo-font-size: 14px;
-    -foo-font-size: 14px;
-  }
-
-  body .unique {
-    -foo-border: 1px solid red;
-    -foo-color: #666666;
     -foo-font-size: 14px;
   }
   ~~~

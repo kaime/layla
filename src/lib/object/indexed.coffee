@@ -2,61 +2,93 @@ Enumerable = require './enumerable'
 Null       = require './null'
 Number     = require './number'
 
-
+###
+###
 class Indexed extends Enumerable
+
+  constructor: ->
+    @reset()
 
   reset: -> @index = 0
 
-  firstKey: -> if @length() then 0 else null
+  keyToIndex: (key) -> key
 
-  lastKey: -> if 0 < (length = @length()) then length - 1 else null
+  indexToKey: (index) -> index
 
-  hasKey: (key) -> 0 <= key < @length()
+  hasIndex: (key) -> 0 <= key < @length
 
-  currentKey: ->
-    if 0 <= @index < @length()
+  done: -> @index >= @length
+
+  next: ->
+    unless @done()
+      return @getByIndex @index++
+
+  firstIndex: -> if @length then 0 else null
+
+  lastIndex: -> if 0 < (length = @length) then length - 1 else null
+
+  currentIndex: ->
+    if 0 <= @index < @length
       @index
     else
       null
 
-  randomKey: ->
-    length = @length()
+  randomIndex: ->
+    length = @length
 
     if length > 0
-      Math.floor Math.random() * length
+      return Math.floor Math.random() * length
     else
-      null
-
-  next: ->
-    if 0 <= @index <= @length()
-      @index++
+      return null
 
   getByIndex: @NOT_IMPLEMENTED
 
+  hasKey: (key) ->  @hasIndex @keyToIndex(key)
+
+  firstKey: -> @indexToKey @firstIndex()
+
+  lastKey: -> @indexToKey @lastIndex()
+
+  currentKey: -> @indexToKey @currentIndex()
+
+  randomKey: -> @indexToKey @randomIndex()
+
+  # TODO Reimplement `currentValue`, `currentValue`, `randmonValue`,
+  # `firstValue` and `lastValue` using `getByIndex()` for performance reasons.
+
   get: (key) ->
-    if ('number' is typeof (key + 0)) and (0 <= key < @length())
-      @getByIndex key
-    else
-      null
+    index = @keyToIndex(key)
+
+    if ('number' is typeof (key + 0)) and (0 <= key < @length)
+      return @getByIndex key
+
+    return super key
 
   each: (cb) ->
     @reset()
 
     while null isnt (key = @currentKey())
       index = new Number key
-      value = (@get key) or Null.null
-      return no if no is cb.call @, index, value
+      value = @get(key) or Null.null
+
+      if no is cb.call(@, @indexToKey(index), value)
+        return no
+
       @next()
 
-  '.index': ->  Null.ifNull @currentKey()
+    return yes
 
-  '.first-index': -> Null.ifNull @firstKey()
+  '.length': -> new Number @length
 
-  '.last-index': -> Null.ifNull @lastKey()
+  '.index': ->  Null.ifNull @currentIndex()
+
+  '.first-index': -> Null.ifNull @firstIndex()
+
+  '.last-index': -> Null.ifNull @lastIndex()
 
   '.::': (other) ->
     if other instanceof Number
-      len = @length()
+      len = @length
       idx = other.value
       idx += len if idx < 0
 

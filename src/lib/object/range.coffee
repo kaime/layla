@@ -13,18 +13,22 @@ class Range extends Indexed
 
   { min, max, abs, floor } = Math
 
+  constructor: (@first = 0, @last = 0, @unit = null, @step = 1) ->
+    super()
+
+  @property 'length',
+    get: -> 1 + floor (abs @last - @first) / @step
+
   @property 'items',
     get: ->
       items = []
 
-      for i in [0...@length()]
+      for i in [0...@length]
         items.push new Number (@getByIndex i), @unit
 
       return items
 
   isReverse: -> @first > @last
-
-  length: -> 1 + floor (abs @last - @first) / @step
 
   minValue: -> new Number min(@first, @last), @unit
 
@@ -37,9 +41,6 @@ class Range extends Indexed
       step *= -1
 
     return new Number @first + index * step, @unit
-
-  constructor: (@first = 0, @last = 0, @unit = null, @step = 1) ->
-    super
 
   convert: (unit) ->
     unit = unit.toString()

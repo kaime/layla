@@ -1,18 +1,16 @@
-Object = require '../object'
-Null   = require './null'
-Number = require './number'
+Object   = require '../object'
+Iterable = require './iterable'
+Null     = require './null'
+Number   = require './number'
 
 ###
 ###
-class Enumerable extends Object
+class Enumerable extends Iterable
 
-  length: -> @NOT_IMPLEMENTED
+  @property 'length',
+    get: -> @NOT_IMPLEMENTED
 
   get: (key) -> @NOT_IMPLEMENTED
-
-  reset: -> @NOT_IMPLEMENTED
-
-  next: -> @NOT_IMPLEMENTED
 
   currentValue: -> @get @currentKey()
 
@@ -25,8 +23,6 @@ class Enumerable extends Object
   hasKey: (key) -> @NOT_IMPLEMENTED
 
   randomKey: -> @NOT_IMPLEMENTED
-
-  each: -> @NOT_IMPLEMENTED
 
   firstValue: -> @get @firstKey()
 
@@ -48,13 +44,18 @@ class Enumerable extends Object
 
     return max
 
-  isEmpty: -> @length() is 0
+  isEmpty: -> @length is 0
 
   isEnumerable: -> yes
 
+  isEqual: (other) ->
+    (other instanceof Enumerable) and
+    (other.length is @length) and
+    @each (key, value) -> value.isEqual other.get(key.value)
+
   '.::': @::get
 
-  '.length': -> new Number @length()
+  '.length': -> new Number @length
 
   '.first': -> @firstValue() or Null.null
 

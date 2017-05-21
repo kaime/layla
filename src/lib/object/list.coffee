@@ -36,6 +36,19 @@ class List extends Collection
 
   '.flatten': -> @clone @flattenItems()
 
+  '.unique': ->
+    unique = []
+
+    @items.filter (item) ->
+      for val in unique
+        if val.isEqual item
+          return no
+
+      unique.push item
+      return yes
+
+    return @clone unique
+
 Object::['.list'] = ->
   if @ instanceof Collection
     new List @items

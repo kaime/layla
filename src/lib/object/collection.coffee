@@ -5,58 +5,46 @@ Null      = require './null'
 TypeError = require '../error/type'
 
 
+###
+###
 class Collection extends Indexed
 
-  constructor: (@items = []) -> super
+  constructor: (@items = []) -> super()
 
-  length: -> @items.length
+  @property 'length',
+    get: -> @items.length
 
   getByIndex: (index) -> @items[index]
 
+  accept: (obj) -> obj.clone()
+
+  splice: (start, count, objs...) ->
+    objs = (@accept(obj) for obj in objs)
+    @items.splice start, count, objs...
+
+    return objs
+
   push: (objs...) ->
-    @items.push obj.clone() for obj in objs
+    @splice @length, 0, objs...
+    return objs.pop()
 
-  slice: (start, end) ->
-    unless start?
-      start = 0
-    else unless start instanceof Number and start.isPure()
-      throw new Error "Bad arguments for `.slice`"
-      start = start.value
+  slice: (start, end) -> @items.slice start, end
 
-    if end?
-      unless end instanceof Number and end.isPure()
-        throw new Error "Bad arguments for `.slice`"
-      end = end.value
-    else
-      end = @items.length
-
-    @items.slice start, end
-
-  contains: (other) ->
-    @items.some other.isEqual.bind other
+  contains: (other) -> @items.some other.isEqual.bind(other)
 
   isUnique: ->
-    for a in @items
-      for b in @items
-        if a isnt b and a.isEqual b
+    for a, i in @items
+      for b, j in @items
+        if i isnt j and a.isEqual(b)
           return no
 
     return yes
 
-  isEqual: (other) ->
-    if other instanceof Collection
-      if other.items.length is @items.length
-        for i in [0...@items.length]
-          return no unless @items[i].isEqual other.items[i]
-
-        return yes
-
-    return no
-
   toJSON: ->
     json = super
-    json.items = @items
-    json
+    json.data = @items
+
+    return json
 
   clone: (items = @items, etc...) ->
     super (obj.clone() for obj in items), etc...
@@ -71,14 +59,18 @@ class Collection extends Indexed
     if other instanceof Number
       idx = other.value
       idx += @items.length if idx < 0
+
       if 0 <= idx < @items.length
         return @items[idx]
       else
         return Null.null
+
     else if other instanceof Collection
       slice = @clone []
+
       for idx in other.items
-        slice.items.push @['.::'] idx
+        slice.push @['.::'](idx)
+
       return slice
 
     throw new TypeError "Bad member: #{other.type}"
@@ -87,12 +79,11 @@ class Collection extends Indexed
     if key instanceof Number
       idx = key.value
       idx += @items.length if idx < 0
+
       if 0 <= idx <= @items.length
         return @items[idx] = value
 
     throw new TypeError
-
-  '.length': -> new Number @length()
 
   '.push': (args...) -> @push args...; @
 
@@ -102,30 +93,33 @@ class Collection extends Indexed
 
   '.unshift': (objs...) ->
     @items.unshift (obj.clone() for obj in objs)...
-    this
 
-  '.slice': (start, end) -> @clone (@slice start, end)
+    return @
+
+  '.slice': (start = Number.ZERO, end = Null.null) ->
+    unless start instanceof Number and start.isPure()
+      throw new Error "Bad arguments for `.slice`"
+
+    if end.isNull()
+      end = new Number @items.length
+
+    unless end instanceof Number and end.isPure()
+      throw new Error "Bad arguments for `.slice`"
+
+    return @clone @slice(start.value, end.value)
+
+  # TODO
+  # '.splice': (start, count, objs...) ->
+  # And implement it on `::=` with ranges:
+  #
+  # ```
+  # $l = 1, 2, 3, 4, 5
+  # $l::(1..3) = '...'
+  # // 1, '...', 5
 
   '.empty': -> @items = []; @
 
-  '.first': -> @items[0] or Null.null
-
-  '.last': -> @items[@items.length - 1] or Null.null
-
   '.unique?': -> Boolean.new @isUnique()
-
-  '.unique': ->
-    unique = []
-
-    @items.filter (item) ->
-      for val in unique
-        if val.isEqual item
-          return no
-
-      unique.push item
-      return yes
-
-    return @clone unique
 
 
 module.exports = Collection
