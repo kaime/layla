@@ -942,6 +942,84 @@
   }
   ~~~
 
+### `lg`
+
+- Returns the common (base 10) logarithm of the number
+
+  ~~~ lay
+  number.lg {
+    i: 1.lg
+    ii: 10.lg
+    iii: 1.27px.lg
+    iv: 0.1.lg
+  }
+  ~~~
+
+  ~~~ css
+  number.lg {
+    i: 0;
+    ii: 1;
+    iii: 0.1px;
+    iv: -1;
+  }
+  ~~~
+
+- Fails for base 0
+
+- Fails for negative bases
+
+### `ln`
+
+- Returns the natural (base e) logarithm of the number
+
+  ~~~ lay
+  number.ln {
+    i: E.ln
+    ii: 1.ln
+    iii: .1px.ln
+    iv: 2cm.ln
+  }
+  ~~~
+
+  ~~~ css
+  number.ln {
+    i: 1;
+    ii: 0;
+    iii: -2.3px;
+    iv: 0.69cm;
+  }
+  ~~~
+
+- Fails for base 0
+
+- Fails for negative bases
+
+### `lb`
+
+- Returns the binary (base 2) logarithm of the number
+
+  ~~~ lay
+  number.lb {
+    i: 2.lb
+    ii: 1.00.lb
+    iii: .1pt.lb
+    iv: 4.lb
+  }
+  ~~~
+
+  ~~~ css
+  number.lb {
+    i: 1;
+    ii: 0;
+    iii: -3.32pt;
+    iv: 2;
+  }
+  ~~~
+
+- Fails for base 0
+
+- Fails for negative bases
+
 ### `convert`
 
 #### Performs unit conversions

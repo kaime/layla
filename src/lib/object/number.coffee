@@ -313,6 +313,12 @@ class Number extends Object
 
   '.atan': -> @clone atan @value
 
+  '.lg': -> @clone Math.log10 @value
+
+  '.lb': -> @clone Math.log2 @value
+
+  '.ln': -> @clone Math.log @value
+
   '.prime?': -> Boolean.new @isPrime()
 
   '.convert': (context, unit) ->
