@@ -350,6 +350,7 @@ class Color extends Object
 
   constructor: (@space, channels, @alpha = 1) ->
     @channels = channels.slice()
+    @alpha = min(1, max(@alpha, 0))
 
   do =>
     make_space_accessors = (space) =>
@@ -377,8 +378,6 @@ class Color extends Object
 
       for channel, index in SPACES[space]
         make_channel_accessors space, index, channel.name
-
-  getChannel: (space, channel) -> @[space][channel]
 
   clampChannel: (space, channel, value) ->
     if SPACES[space][channel].unit is 'deg'
@@ -486,7 +485,7 @@ class Color extends Object
     return "rgba(" + (comps.join ', ') + ')'
 
   toHexString: ->
-    comps = [].concat @['rgb']
+    comps = @['rgb'].map round
 
     alpha = @alpha * 255
 
@@ -495,13 +494,16 @@ class Color extends Object
 
     hex = '#'
 
-    for c in comps
-      c = round(c).toString 16
+    if comps.every((c) -> 0 is c % 17)
+      hex += (comps.map((c) -> (c / 17).toString 16)).join ''
+    else
+      for c in comps
+        c = (round c).toString 16
 
-      if c.length < 2
-        hex += '0'
+        if c.length < 2
+          hex += '0'
 
-      hex += c
+        hex += c
 
     return hex
 
@@ -689,8 +691,6 @@ class Color extends Object
       value = value.value
     else
       throw new Error "Bad alpha value: #{value}"
-
-    value = min(1, max(value, 0))
 
     return @copy null, null, value
 
