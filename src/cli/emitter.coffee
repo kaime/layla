@@ -1,4 +1,4 @@
-CSSEmitter = require './css'
+CSSEmitter = require '../css/emitter'
 
 
 ###
@@ -62,6 +62,7 @@ class CLIEmitter extends CSSEmitter
   emitAtRuleArguments: (sel) -> @format super(sel), MAGENTA
 
   emitPropertyName: (property) -> @format super(property), BOLD, CYAN
+
 
 
 module.exports = CLIEmitter

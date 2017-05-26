@@ -1,16 +1,16 @@
 Class      = require './class'
-Parser     = require './parser/base'
+Parser     = require './parser/lay'
 Context    = require './context'
 Evaluator  = require './evaluator'
 Emitter    = require './emitter'
-CSSEmitter = require './emitter/css'
-CLIEmitter = require './emitter/cli'
 Node       = require './node'
 Object     = require './object'
 Document   = require './object/document'
 String     = require './object/string'
 Error      = require './error'
-Normalizer = require './css/normalizer'
+CSSContext = require '../css/context'
+Normalizer = require '../css/normalizer'
+CSSEmitter = require '../css/emitter'
 VERSION    = require './version'
 
 ## TODO Remove this entire class?
@@ -34,7 +34,7 @@ class Layla
 
   ###
   ###
-  constructor: (@context = new Context) ->
+  constructor: (@context = new CSSContext) ->
     @parser = new Parser
     @evaluator = new Evaluator
     @normalizer = new Normalizer
