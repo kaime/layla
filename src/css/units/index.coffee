@@ -1,5 +1,5 @@
-Plugin = require '../../plugin'
-Number = require '../../object/number'
+Plugin = require '../../lib/plugin'
+Number = require '../../lib/object/number'
 
 
 UNITS =

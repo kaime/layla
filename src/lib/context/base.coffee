@@ -1,6 +1,5 @@
 Context      = require '../context'
 LayIncluder  = require '../includer/lay'
-CSSIncluder  = require '../includer/css'
 Null         = require '../object/null'
 Boolean      = require '../object/boolean'
 QuotedString = require '../object/string/quoted'
