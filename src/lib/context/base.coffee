@@ -16,7 +16,6 @@ class BaseContext extends Context
     super
 
     @use new LayIncluder
-    @use new CSSIncluder
 
     @set 'null', Null.null
     @set 'true', Boolean.true
