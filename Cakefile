@@ -4,6 +4,7 @@ fs           = require 'fs-extra'
 which        = require 'which'
 childProcess = require 'child_process'
 coffee       = require 'coffeescript'
+browserify   = require 'browserify'
 glob         = require 'glob'
 Layla        = require './src/lib'
 
@@ -185,7 +186,7 @@ option '-w', '--watch', 'Whatch sources for changes and re-run tasks'
 task 'clean', 'Remove all built files and directories', ->
   queue ->
     log 'task', 'Cleaning up'
-    remove MODULES.concat ['test']
+    remove MODULES.concat ['browser', 'test']
 
 task 'build:test', 'Build tests', ->
   queue ->
@@ -230,6 +231,20 @@ MODULES.forEach (module) ->
           else
             done()
 
+task 'build:browser', 'Build browser module', (options) ->
+  queue ->
+    log 'task', 'Building browser module'
+    mkdir './browser', ->
+      extensions = ['.coffee', '.js', '.json']
+      bundle = browserify extensions: extensions
+      bundle.transform 'coffeeify', bare: yes
+      bundle.add './src/browser'
+      # TODO: Uglify!
+      bundle.bundle (err, js) ->
+        write "./browser/layla.js", js, ->
+          copy './src/browser/index.html', './browser/index.html', ->
+            done()
+
 task 'build:license', 'Build license file', ->
   queue ->
     log 'task', 'Building license'
@@ -245,7 +260,7 @@ task 'build:module', 'Build NPM module', ->
   invoke 'build:index'
 
 task 'build:all', 'Build everything', ->
-  for module in MODULES
+  for module in MODULES.concat('browser')
     invoke "build:#{module}"
 
   invoke 'build:license'
@@ -290,10 +305,16 @@ task 'build', 'Alias of build:all', ->
       log 'task', "Running CLI tests#{expl}"
       test 'cli', source
 
+  task "#{prefix}:browser", "Run browser tests#{expl}", ->
+    queue ->
+      log 'task', "Running browser tests#{expl}"
+      test 'browser', source
+
   task "#{prefix}:all", "Run all tests#{expl}", ->
     invoke "#{prefix}:unit"
     invoke "#{prefix}:cases"
     invoke "#{prefix}:cli"
+    invoke "#{prefix}:browser"
     invoke "#{prefix}:style"
     invoke "#{prefix}:docs"
 
