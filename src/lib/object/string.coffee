@@ -143,7 +143,7 @@ class String extends Object
       char = @value.charAt(idx)
 
       if char is ''
-        return Null.null
+        return Null.NULL
       else
         return @copy char
 

@@ -44,7 +44,7 @@ class URI extends Object
 
   '.scheme': ->
     if not @scheme
-      Null.null
+      Null.NULL
     else
       new QuotedString @scheme
 
