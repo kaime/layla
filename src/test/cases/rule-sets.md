@@ -91,11 +91,11 @@ Rule sets
   }
   ~~~
 
-## Support common syntax
+### Support common syntax
 
-### Simple selectors
+#### Simple selectors
 
-#### Universal selectors
+##### Universal selectors
 
 - Are supported
 
@@ -118,7 +118,7 @@ Rule sets
   }
   ~~~
 
-#### Type selectors
+##### Type selectors
 
 - Are supported
 
@@ -223,7 +223,7 @@ Rule sets
   }
   ~~~
 
-#### Class selectors
+##### Class selectors
 
 - Are supported
 
@@ -317,7 +317,7 @@ Rule sets
   }
   ~~~
 
-#### Id selectors
+##### Id selectors
 
 - Are supported
 
@@ -409,7 +409,7 @@ Rule sets
   }
   ~~~
 
-#### Attribute selectors
+##### Attribute selectors
 
 - Attribute is present
 
@@ -725,7 +725,7 @@ Rule sets
   }
   ~~~
 
-#### Pseudo selectors
+##### Pseudo selectors
 
 - Pseudo-classes
 
@@ -1156,3 +1156,30 @@ Rule sets
   ~~~
 
 - Cannot appear more than once
+
+## Methods
+
+### `selector`
+
+- Returns the rule set selector as a quoted string
+
+  ~~~ lay
+  @rule-selectors {
+    #id-selector {}
+    .class-selector {}
+    [attribute-selector] {}
+    [attribute=selector] {}
+    [attribute='selector'] {}
+    [attribute=`selector`] {}
+    [attribute="selector" i] {}
+
+    for $i, $rule in &.rules {
+      #{($i + 1).roman}: $rule.selector
+    }
+  }
+  ~~~
+
+  ~~~ css
+  @rule-set selector {
+  }
+  ~~~

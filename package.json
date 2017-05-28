@@ -18,7 +18,10 @@
   "scripts": {
     "test": "cake --verbose build test",
     "layla": "./cli/layla",
-    "start": "./cli/layla -i"
+    "start": "./cli/layla -i",
+    "coffee": "coffee",
+    "mocha": "mocha",
+    "nyc": "nyc"
   },
   "bin": {
     "layla": "./cli/layla"
@@ -31,12 +34,15 @@
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.7.0",
     "chai": "^4.1.2",
+    "coffee-coverage": "^3.0.1",
     "coffeelint": "^2.1.0",
     "coffeescript": "^2.3.1",
     "commonmark": "~0.12.0",
     "fs-extra": "^0.18.2",
     "glob": "^5.0.5",
+    "istanbul": "^0.4.5",
     "mocha": "^5.2.0",
+    "nyc": "^13.3.0",
     "tmp": "0.0.30",
     "uglify-js": "^2.4.17",
     "uuid": "^3.3.3",

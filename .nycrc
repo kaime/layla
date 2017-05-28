@@ -1,0 +1,7 @@
+{
+  "reporter": ["lcov", "text"],
+  "extension": [".coffee"],
+  "sourceMap": false,
+  "instrument": false,
+  "report-dir": "./.coverage"
+}

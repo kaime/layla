@@ -25,6 +25,7 @@ BG_RED = "#{ESC}[41m"
 NPM = which.sync 'npm'
 NPM_BIN = childProcess.execSync("#{NPM} bin").toString().trim()
 
+COVERAGE = no
 VERBOSE = no
 WATCH   = no
 
@@ -35,6 +36,9 @@ global.task = (name, description, action) ->
   _task name, description, (options) ->
     if options.verbose
       VERBOSE = yes
+
+    if options.coverage
+      COVERAGE = yes
 
     if options.watch
       WATCH = yes
@@ -172,6 +176,8 @@ uncoffee = (source) ->
 test = (path, source = no, callback = done) ->
   path = "test/#{path}"
 
+  command = 'mocha'
+
   args = [
     '--slow 500'
     '--timeout 10000'
@@ -184,9 +190,15 @@ test = (path, source = no, callback = done) ->
     path = "src/#{path}/**/index.coffee"
     args.push '--require coffeescript/register'
 
-  exec "mocha #{args.join ' '} #{path}", callback
+    if COVERAGE
+      command = "nyc --reporter html #{command}"
+      args.push '--require coffee-coverage/register-istanbul'
+
+  exec "#{command} #{args.join ' '} #{path}", callback
 
 option '-v', '--verbose', 'Enable verbose output'
+
+option '-g', '--coverage', 'Generate code coverage report'
 
 option '-w', '--watch', 'Whatch sources for changes and re-run tasks'
 
