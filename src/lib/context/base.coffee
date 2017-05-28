@@ -5,6 +5,7 @@ Null         = require '../object/null'
 Boolean      = require '../object/boolean'
 QuotedString = require '../object/string/quoted'
 Number       = require '../object/number'
+Console      = require '../object/console'
 VERSION      = require '../version'
 
 
@@ -28,5 +29,6 @@ class BaseContext extends Context
     @set 'π', new Number Math.PI
     @set 'E', new Number Math.E
 
+    @set 'console', new Console(@)
 
 module.exports = BaseContext

@@ -1,11 +1,13 @@
 Path = require 'path'
 URL  = require 'url'
 
-Class        = require './class'
-Document     = require './object/document'
-Null         = require './object/null'
-Function     = require './object/function'
-Evaluator    = require './evaluator'
+Class     = require './class'
+Logger    = require './logger'
+Document  = require './object/document'
+Null      = require './object/null'
+Function  = require './object/function'
+Evaluator = require './evaluator'
+
 IncludeError = require './error/include'
 
 MAX_INCLUDE_STACK = 100
@@ -23,6 +25,7 @@ class Context extends Class
 
     @_scope = {}
     @_plugins = []
+    @_loggers = []
     @_includers = []
     @_includes = []
     @_calls = []
@@ -46,6 +49,9 @@ class Context extends Class
   @property 'includers', ->
     (if @parent then @parent.includers else []).concat @_includers
 
+  @property 'loggers', ->
+      (if @parent then @parent.loggers else []).concat @_loggers
+
   @property 'loaders', ->
     (if @parent then @parent.loaders else []).concat @_loaders
 
@@ -65,6 +71,23 @@ class Context extends Class
 
   set: (name, value) ->
     @_scope[name] = value.clone()
+
+  log: (message, level = Logger.DEBUG) ->
+    for logger in @loggers
+      logger.log message, level
+
+  debug: (message) -> @log message, Logger.DEBUG
+
+  info: (message) -> @log message, Logger.INFO
+
+  notice: (message) -> @log message, Logger.WARNING
+
+  warning: (message) -> @log message, Logger.WARNING
+
+  error: (message) -> @log message, Logger.ERROR
+
+  useLogger: (logger) ->
+    @_loggers.push logger
 
   useLoader: (loader) ->
     @_loaders.push loader
