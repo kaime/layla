@@ -1,3 +1,5 @@
+Decimal        = require 'decimal.js'
+
 Indexed        = require './indexed'
 Null           = require './null'
 Boolean        = require './boolean'
@@ -23,23 +25,27 @@ class Range extends Indexed
 
       return items
 
-  isReverse: -> @first > @last
+  isReverse: -> @first.gt(@last)
 
-  length: -> 1 + floor (abs @last - @first) / @step
+  length: -> @last.sub(@first).abs().div(@step).floor().add(1)
 
-  minValue: -> new Number min(@first, @last), @unit
+  minValue: -> new Number Decimal.min(@first, @last), @unit
 
-  maxValue: -> new Number max(@first, @last), @unit
+  maxValue: -> new Number Decimal.max(@first, @last), @unit
 
   getByIndex: (index) ->
     step = @step
 
     if @isReverse()
-      step *= -1
+      step = step.times(-1)
 
-    return new Number @first + index * step, @unit
+    return new Number @first.add(step.times(index)), @unit
 
-  constructor: (@first = 0, @last = 0, @unit = null, @step = 1) ->
+  constructor: (first = 0, last = 0, @unit = null, step = 1) ->
+    @first = Decimal(first)
+    @last = Decimal(last)
+    @step = Decimal(step)
+
     super
 
   convert: (unit) ->
@@ -60,7 +66,10 @@ class Range extends Indexed
   contains: (other) ->
     try
       other = other.convert @unit
-      return min(@first, @last) <= other.value <= max(@first, @last)
+      min = Decimal.min(@first, @last)
+      max = Decimal.max(@first, @last)
+
+      return min.lte(other._value) and other._value.lte(max)
 
     return no
 
@@ -71,31 +80,40 @@ class Range extends Indexed
   copy: (first = @first, last = @last, unit = @unit, step = @step, etc...) ->
     super first, last, unit, step, etc...
 
-  reprValue: -> "#{@first}..#{@last}"
+  reprValue: -> "#{@first.toString()}..#{@last.toString()}"
 
   './': (context, step) ->
     if step instanceof Number
-      return @copy null, null, null, (step.convert @unit).value
+      return @copy null, null, null, step.convert(@unit)._value
 
     throw new ValueError "Cannot divide a range by #{step.repr()}"
 
-  '.unit': -> if @unit then new UnquotedString @unit else Null.null
+  '.unit': ->
+    if @unit then new UnquotedString @unit else Null.null
 
-  '.unit?': -> Boolean.new @unit
+  '.unit?': ->
+    Boolean.new @unit
 
-  '.pure?': -> Boolean.new @isPure()
+  '.pure?': ->
+    Boolean.new @isPure()
 
-  '.pure': -> @copy null, null, ''
+  '.pure': ->
+    @copy null, null, ''
 
-  '.step': -> new Number @step, @unit
+  '.step': ->
+    new Number @step, @unit
 
-  '.convert': (context, args...) -> @convert args...
+  '.convert': (context, args...) ->
+    @convert args...
 
-  '.reverse?': -> Boolean.new @isReverse()
+  '.reverse?': ->
+    Boolean.new @isReverse()
 
-  '.reverse': -> @copy @last, @first
+  '.reverse': ->
+    @copy @last, @first
 
-  '.list': -> new List @items
+  '.list': ->
+    new List @items
 
 Number::['...'] = (context, other) ->
   if other instanceof Number
@@ -107,7 +125,7 @@ Number::['...'] = (context, other) ->
     else
       unit = null
 
-    return new Range @value, other.value, unit
+    return new Range @value, other._value, unit
 
   throw new ValueError "Cannot make a range with that: #{other.type}"
 
@@ -131,20 +149,25 @@ do ->
   String::['.::'] = (context, other, etc...) ->
     if other instanceof Range
       str = ''
+
       if @value isnt ''
         len = @value.length
 
-        end = other.last + 1
-        end += len if end < 0
-        end = min end, (len - 1)
+        end = other.last.add(1)
+        if end.lt(0)
+          end = end.add(len)
+        end = Decimal.min(end, len - 1)
 
         idx = other.first
-        idx += len if idx < 0
-        idx = max -len, idx
+        if idx.lt(0)
+          idx = idx.add(len)
 
-        while idx isnt end
-          str += @value.charAt idx
-          idx = (idx + 1) % len
+        idx = Decimal.max(-len, idx)
+
+        until idx.equals(end)
+          str += @value.charAt idx.toString()
+          idx = idx.add(1).mod(len)
+
       @copy str
     else
       supah.call @, context, other, etc...

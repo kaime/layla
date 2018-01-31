@@ -202,23 +202,23 @@
 
   ~~~ lay
   number.positive {
-    foo: 999.positive?
-    foo: 0.5.positive?
-    foo: ( 0 ).positive?
+    i: 999.positive?
+    ii: 0.5.positive?
+    iii: ( 0 ).positive?
     $a = 0.001
-    foo: $a.positive?
+    iv: $a.positive?
     $a = $a * (-1)
-    foo: not $a.positive?
+    v: not $a.positive?
   }
   ~~~
 
   ~~~ css
   number.positive {
-    foo: true;
-    foo: true;
-    foo: false;
-    foo: true;
-    foo: true;
+    i: true;
+    ii: true;
+    iii: false;
+    iv: true;
+    v: true;
   }
   ~~~
 
@@ -1706,7 +1706,7 @@
     xviii: 96px is 1in
       xix: 1in is 2.54cm
        xx: .5turn is 200grad
-      xxi: 1mm is 0.24pc
+      xxi: 1mm isnt 0.24pc
   }
   ~~~
 

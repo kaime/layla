@@ -1,7 +1,8 @@
+Decimal    = require 'decimal.js'
+
 Object     = require '../object'
 Boolean    = require './boolean'
 ValueError = require '../error/value'
-
 
 FACTORS = {}
 
@@ -23,12 +24,12 @@ class Number extends Object
     if from.unit and to.unit
       if from.unit isnt to.unit
         FACTORS[from.unit] ?= {}
-        FACTORS[from.unit][to.unit] = to.value / from.value
+        FACTORS[from.unit][to.unit] = to._value.div(from._value)
 
         FACTORS[to.unit] ?= {}
-        FACTORS[to.unit][from.unit] = from.value / to.value
+        FACTORS[to.unit][from.unit] = from._value.div(to._value)
 
-      else if from.value isnt to.value
+      else if not from.equals(to)
         throw new ValueError "Bad unit definition"
 
       return to
@@ -49,6 +50,7 @@ class Number extends Object
 
   constructor: (value = 0, @unit = null) ->
     @value = parseFloat value.toString()
+    @_value = new Decimal @value
 
   @convert: (value, from_unit, to_unit = '', stack = []) ->
     if to_unit is from_unit or (to_unit and not from_unit)
@@ -57,14 +59,14 @@ class Number extends Object
       return value
     else if from_unit of FACTORS
       if to_unit of FACTORS[from_unit]
-        return value * FACTORS[from_unit][to_unit]
+        return FACTORS[from_unit][to_unit].times(value)
       else
         stack.push from_unit
 
         for u of FACTORS[from_unit]
           unless u in stack
             stack.push u
-            val = FACTORS[from_unit][u] * value
+            val = FACTORS[from_unit][u].times(value)
             try
               return @convert val, u, to_unit, stack
             stack.pop()
@@ -79,26 +81,31 @@ class Number extends Object
     if unit
       unit = unit.toString().trim()
 
-    value = @class.convert @value, @unit, unit
+    value = @class.convert @_value, @unit, unit
 
     return @copy value, unit or ''
 
   ###
   ###
-  negate: -> @copy -1 * @value
+  negate: -> @copy @_value.times(-1)
+
+  negative: -> @copy @_value.abs().times(-1)
 
   ###
   ###
   isEqual: (other) ->
-    other instanceof Number and
-    try round(other.convert(@unit).value, 10) is round(@value, 10)
+    if other instanceof Number
+      try
+        return other.convert(@unit)._value.equals(@_value)
+
+    return no
 
   compare: (other) ->
     if other instanceof Number
       other = other.convert @unit
-      if other.value is @value
+      if other._value.equals @_value
         return 0
-      else if other.value > @value
+      else if other._value.greaterThan @_value
         return 1
       else
         return -1
@@ -112,11 +119,17 @@ class Number extends Object
 
   isPure: -> not @unit
 
-  isInteger: -> @value % 1 is 0
+  isDimension: -> not @isPure()
 
-  isEmpty: -> @value is 0
+  parity: -> @_value.mod(2).isZero()
 
-  isPositive: -> @value > 0
+  isInteger: -> @_value.isInteger()
+
+  isEmpty: -> @_value.isZero()
+
+  isPositive: -> @_value.gt(0)
+
+  isNegative: -> @_value.lt(0)
 
   # http://www.javascripter.net/faq/numberisprime.htm
   isPrime: ->
@@ -147,22 +160,20 @@ class Number extends Object
 
   toNumber: -> @clone()
 
-  toString: ->
-    str = "#{@value}"
-    str += @unit if @unit
-    str
+  toString: -> "#{@_value.toString()}#{@unit or ''}"
 
   toJSON: ->
     json = super
     json.value = @value
     json.unit = @unit
-    json
 
-  reprValue: -> "#{@value}#{@unit or ''}"
+    return json
+
+  reprValue: -> @toString()
 
   clone: -> @
 
-  copy: (value = @value, unit = @unit) ->
+  copy: (value = @_value, unit = @unit) ->
     super value, unit
 
   ZERO = @ZERO = new @ 0
@@ -174,11 +185,14 @@ class Number extends Object
 
   '.+@': -> @clone()
 
-  '.-@': -> @copy -@value
+  '.-@': -> @negate()
 
   '.+': (context, other) ->
     if other instanceof Number
-      return @copy @convert(other.unit).value + other.value, other.unit or @unit
+      value = @convert(other.unit)._value.add(other._value)
+      unit = other.unit or @unit
+
+      return @copy value, unit
 
     throw new ValueError (
       """
@@ -189,7 +203,10 @@ class Number extends Object
 
   '.-': (context, other) ->
     if other instanceof Number
-      return @copy @convert(other.unit).value - other.value, other.unit or @unit
+      value = @convert(other.unit)._value.sub(other._value)
+      unit = other.unit or @unit
+
+      return @copy value, unit
 
     throw new ValueError (
       """
@@ -202,8 +219,10 @@ class Number extends Object
 
     if other instanceof Number
       if @isPure() or other.isPure()
-        # TODO should fail for incompatible units
-        return @copy other.value * @value, other.unit or @unit
+        value = @._value.times(other._value)
+        unit = other.unit or @unit
+
+        return @copy value, unit
 
       throw new ValueError """
         Cannot perform #{@repr()} * #{other.repr()}
@@ -216,12 +235,16 @@ class Number extends Object
 
   './': (context, other) ->
     if other instanceof Number
-      if other.value is 0
+      if other._value.isZero()
         throw new ValueError 'Cannot divide by 0'
       if !@isPure() and !other.isPure()
-        return @copy @value / other.convert(@unit).value, ''
+        value = @_value.div(other.convert(@unit)._value)
+        unit = ''
       else
-        return @copy @value / other.value, @unit or other.unit
+        value = @_value.div(other._value)
+        unit = @unit or other.unit
+
+      return @copy value, unit
 
     throw new ValueError (
       """
@@ -230,17 +253,19 @@ class Number extends Object
       """
     )
 
-  '.unit?': -> Boolean.new @unit
+  '.unit?': -> Boolean.new not @isPure()
+
+  '.dimension?': -> Boolean.new @isDimension()
 
   '.pure?': -> Boolean.new @isPure()
 
-  '.pure': -> new Number @value
+  '.pure': -> new Number @_value
 
-  '.zero?': -> Boolean.new @value is 0
+  '.zero?': -> Boolean.new @_value.isZero()
 
   '.integer?': -> Boolean.new @isInteger()
 
-  '.decimal?': -> Boolean.new @value % 1 isnt 0
+  '.decimal?': -> Boolean.new not @isInteger()
 
   '.divisible-by?': (context, other) ->
     unless other.isPure()
@@ -249,73 +274,73 @@ class Number extends Object
       catch
         return Boolean.false
 
-    div = @value / other.value
+    return Boolean.new @_value.mod(other._value).isZero()
 
-    Boolean.new div is floor div
+  '.even?': -> Boolean.new @parity()
 
-  '.even?': -> Boolean.new @value % 2 is 0
-
-  '.odd?': -> Boolean.new @value % 2 isnt 0
+  '.odd?': -> Boolean.new not @parity()
 
   '.sign': ->
-    if @value is 0
+    if @_value.isZero()
       sign = 0
-    else if @value > 0
+    else if @_value.greaterThan(0)
       sign = 1
     else
       sign = -1
 
-    return new @class sign
+    return @copy sign, ''
 
   '.positive?': -> Boolean.new @isPositive()
 
-  '.positive': -> @copy abs(@value)
+  '.positive': -> @copy @_value.abs()
 
-  '.negative': -> @copy -1 * abs(@value)
+  '.negative': -> @negative()
 
   '.negate': -> @negate()
 
-  '.negative?': -> Boolean.new @value < 0
+  '.negative?': -> Boolean.new @isNegative()
 
   '.round': (context, places = ZERO) ->
-    m = pow 10, places.value
-    return @copy round(@value * m) / m
+    m = Decimal(10).pow(places._value)
+    return @copy m.times(@_value).round().div(m)
 
-  '.ceil': ->  @copy ceil(@value)
+  '.ceil': ->  @copy @_value.ceil()
 
-  '.floor': -> @copy floor(@value)
+  '.floor': -> @copy @_value.floor()
 
-  '.abs': -> @copy abs(@value)
+  '.abs': -> @copy @_value.abs()
 
-  '.pow': (context, exp = TWO) -> @copy pow(@value, exp.value)
+  '.pow': (context, exp = TWO) ->
+    # TODO do not default exp to 2; instead, require this argument
+    @copy @_value.pow(exp._value)
 
   '.sq': -> @['.pow'] TWO
 
   '.root': (context, deg = TWO) ->
-    if @value < 0
+    if @_value.isNegative()
       throw new ValueError """
-      Cannot make #{deg.value}th root of #{@repr()}: Base cannot be negative
+      Cannot make #{deg._value}th root of #{@repr()}: Base cannot be negative
       """
-    @copy pow(@value, 1 / (deg.value))
+    @copy @_value.pow(Decimal(1).div(deg._value))
 
   '.sqrt': -> @['.root'] TWO
 
   '.mod': (context, other) ->
-    if other.value is 0
+    if other._value.isZero()
       throw new ValueError 'Cannot divide by 0'
-    @copy @value % other.value
+    @copy @_value.mod(other._value)
 
-  '.sin': -> @copy sin(@value)
+  '.sin': -> @copy @_value.sin()
 
-  '.cos': -> @copy cos(@value)
+  '.cos': -> @copy @_value.cos()
 
-  '.tan': -> @copy tan(@value)
+  '.tan': -> @copy @_value.tan()
 
-  '.asin': -> @copy asin(@value)
+  '.asin': -> @copy @_value.asin()
 
-  '.acos': -> @copy acos(@value)
+  '.acos': -> @copy @_value.acos()
 
-  '.atan': -> @copy atan(@value)
+  '.atan': -> @copy @_value.atan()
 
   '.prime?': -> Boolean.new @isPrime()
 
@@ -327,9 +352,11 @@ class Number extends Object
 
     @convert unit
 
-Object::toNumber = -> throw new Error "Cannot convert #{@repr()} to number"
+Object::toNumber = ->
+  throw new Error "Cannot convert #{@repr()} to number"
 
-Boolean::toNumber = -> new Number (if @value then 1 else 0)
+Boolean::toNumber = ->
+  new Number (if @value then 1 else 0)
 
 Object::['.number'] = -> @toNumber()
 
