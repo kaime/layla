@@ -8,8 +8,8 @@ class TypeSelector extends ElementalSelector
   constructor: (@name = null, etc...) ->
     super etc...
 
-  copy: (name = @name, etc...) ->
-    super name, etc...
+  copy: (name = @name, namespace = @namespace, etc...) ->
+    super name, namespace, etc...
 
   toString: ->
     str = ''

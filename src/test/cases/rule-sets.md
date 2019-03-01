@@ -1164,22 +1164,43 @@ Rule sets
 - Returns the rule set selector as a quoted string
 
   ~~~ lay
-  @rule-selectors {
+  rule-set.selector {
+    * {}
+    type-selector {}
+    namespaced|type-selector {}
     #id-selector {}
     .class-selector {}
     [attribute-selector] {}
     [attribute=selector] {}
     [attribute='selector'] {}
-    [attribute=`selector`] {}
+    [namespaced|attribute=`selector`] {}
     [attribute="selector" i] {}
+    :pseudo-class("selector") {}
+    ::pseudo-element {}
+    more#than,.one[selector] {}
+    #these .are > [actually] + :all ~ combinators {}
 
     for $i, $rule in &.rules {
-      #{($i + 1).roman}: $rule.selector
+      #{($i + 1).roman.lower-case}: $rule.selector
     }
   }
   ~~~
 
   ~~~ css
-  @rule-set selector {
+  rule-set.selector {
+    i: "*";
+    ii: "type-selector";
+    iii: "namespaced|type-selector";
+    iv: "#id-selector";
+    v: ".class-selector";
+    vi: "[attribute-selector]";
+    vii: "[attribute=selector]";
+    viii: "[attribute=\"selector\"]";
+    ix: "[namespaced|attribute=`selector`]";
+    x: "[attribute=\"selector\" i]";
+    xi: ":pseudo-class(selector)";
+    xii: "::pseudo-element";
+    xiii: "more#than, .one[selector]";
+    xiv: "#these .are > [actually] + :all ~ combinators";
   }
   ~~~

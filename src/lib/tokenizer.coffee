@@ -404,47 +404,6 @@ class Tokenizer extends Class
 
   ###
   ###
-  readCalcToken: -> @readToken()
-
-  ###
-  ###
-  readCalcArguments: ->
-    tokens = []
-    parens = 0
-
-    loop
-      @skipAllWhitespace()
-      break if @isEndOfFile()
-
-      token = @readCalcToken()
-
-      if not token
-        @syntaxError()
-
-      if token.kind is T.PAREN_OPEN
-        parens++
-      else if token.kind is T.PAREN_CLOSE
-        parens--
-
-        if parens is 0
-          tokens.push ')'
-          break
-        else if parens < 0
-          @syntaxError()
-
-      if token.kind in [T.RAW_STRING, T.UNQUOTED_STRING, T.QUOTED_STRING]
-        eof = new Token T.EOF, @location, @location
-        token.next = eof
-        token = [token, eof]
-      else
-        token = token.value
-
-      tokens.push token
-
-    return tokens
-
-  ###
-  ###
   readCalc: ->
     if m = @match RE_CALC
       calc = new Token T.CALC, m.start, m.end

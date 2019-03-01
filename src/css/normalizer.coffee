@@ -48,6 +48,33 @@ class Normalizer extends Visitor
 
   isEmptyProperty: (node) -> node.value instanceof Null
 
+  hoistAtRule: (rule, parent, root) ->
+    if @options.hoist_at_rules or @options["hoist_#{child.name}_at_rules"]
+      parent = root
+
+    parent.items.push rule
+
+    return parent
+
+  hoistRuleSet: (rule, parent, root) ->
+    if @options.hoist_rule_sets and parent instanceof RuleSet
+      parent = root
+
+    parent.items.push rule
+
+    return parent
+
+  hoistRule: (rule, parent, root) ->
+    unless parent is root
+      if rule instanceof RuleSet
+        return @hoistRuleSet rule, parent, root
+      else if rule instanceof AtRule
+        return @hoistAtRule rule, parent, root
+
+    parent.items.push rule
+
+    return parent
+
   normalizeBlock: (node, root) ->
     if body = node.items
       root ?= node
@@ -57,17 +84,7 @@ class Normalizer extends Visitor
         child = body.shift()
 
         if child instanceof Rule
-          hoist =
-            (@options.hoist_rule_sets and
-              (child instanceof RuleSet) and
-              (node instanceof RuleSet)
-            ) or
-            (child instanceof AtRule and (
-              @options.hoist_at_rules or
-              @options["hoist_#{child.name}_at_rules"]
-            ))
-
-          (if hoist then root else node).items.push child
+          parent = @hoistRule child, node, root
 
           if child instanceof RuleSet and node instanceof RuleSet
             child.selector = child.selector.resolve node.selector
@@ -85,7 +102,7 @@ class Normalizer extends Visitor
             )
 
           if strip
-            root.items.splice (root.items.indexOf child), 1
+            parent.items.splice (parent.items.indexOf child), 1
 
         else if child instanceof Property
           if @options.strip_empty_properties and @isEmptyProperty child

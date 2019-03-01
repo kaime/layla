@@ -191,7 +191,7 @@ test = (path, source = no, callback = done) ->
     args.push '--require coffeescript/register'
 
     if COVERAGE
-      command = "nyc --reporter html #{command}"
+      command = "nyc --reporter html node_modules/.bin/mocha"
       args.push '--require coffee-coverage/register-istanbul'
 
   exec "#{command} #{args.join ' '} #{path}", callback
