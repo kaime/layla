@@ -8,10 +8,10 @@ class Null extends Object
 
   @NULL = new @
 
-  @new: -> @null
+  @new: -> @NULL
 
   @ifNull: (value) ->
-    if not value? or (value instanceof @) then @null else value
+    if value? then value else @NULL
 
   toString: -> ''
 

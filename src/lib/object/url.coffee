@@ -175,7 +175,7 @@ class URL extends URI
         if value?
           return new QuotedString value
         else
-          return Null.null
+          return Null.NULL
 
       value = if value.isNull() then null else value.toString()
 
@@ -189,7 +189,7 @@ class URL extends URI
         if value?
           return new QuotedString value
         else
-          return Null.null
+          return Null.NULL
 
       if value.isNull()
         value = null
@@ -211,7 +211,7 @@ class URL extends URI
         if value?
           return new QuotedString value
         else
-          return Null.null
+          return Null.NULL
 
       if value.isNull()
         value = null
