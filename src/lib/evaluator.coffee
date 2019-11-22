@@ -88,8 +88,9 @@ class Evaluator extends Class
   evaluateNode: (node, context) ->
     if node
       method = "evaluate#{node.type}"
+
       if method of @
-        return @[method] node, context
+        return Null.ifNull @[method] node, context
 
     unless node instanceof Object
       throw new InternalError "Don't know how to evaluate node #{node.type}"
