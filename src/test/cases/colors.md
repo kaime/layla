@@ -4,17 +4,17 @@
 
   ~~~ lay
   color[hex] {
-    color: #a2f
-    color: #666
-    color: #fefefe
+    i: #a2f
+    ii: #666
+    iii: #fefefe
   }
   ~~~
 
   ~~~ css
   color[hex] {
-    color: #a2f;
-    color: #666;
-    color: #fefefe;
+    i: #a2f;
+    ii: #666;
+    iii: #fefefe;
   }
   ~~~
 
@@ -22,17 +22,17 @@
 
   ~~~ lay
   color[hex="6"] {
-    six: #000000
-    six: #ffffff
-    six: #a7cb82
+    i: #000000
+    ii: #ffffff
+    iii: #a7cb82
   }
   ~~~
 
   ~~~ css
   color[hex="6"] {
-    six: #000;
-    six: #fff;
-    six: #a7cb82;
+    i: #000;
+    ii: #fff;
+    iii: #a7cb82;
   }
   ~~~
 
@@ -40,17 +40,17 @@
 
   ~~~ lay
   color[hex="3"] {
-    three: #000
-    three: #fff
-    three: #7ab
+    i: #000
+    ii: #fff
+    iii: #7ab
   }
   ~~~
 
   ~~~ css
   color[hex="3"] {
-    three: #000;
-    three: #fff;
-    three: #7ab;
+    i: #000;
+    ii: #fff;
+    iii: #7ab;
   }
   ~~~
 
@@ -58,17 +58,17 @@
 
   ~~~ lay
   color[hex="8"] {
-    eight: #00000000
-    eight: #ffffffff
-    eight: #a7cb82ab
+    i: #00000000
+    ii: #ffffffff
+    iii: #a7cb82ab
   }
   ~~~
 
   ~~~ css
   color[hex="8"] {
-    eight: rgba(0, 0, 0, 0);
-    eight: #fff;
-    eight: rgba(167, 203, 130, 0.67);
+    i: rgba(0, 0, 0, 0);
+    ii: #fff;
+    iii: rgba(167, 203, 130, 0.67);
   }
   ~~~
 
@@ -76,19 +76,19 @@
 
   ~~~ lay
   color[hex="4"] {
-    four: #0000
-    four: #000a
-    four: #ffff
-    four: #b78c
+    i: #0000
+    ii: #000a
+    iii: #ffff
+    iv: #b78c
   }
   ~~~
 
   ~~~ css
   color[hex="4"] {
-    four: rgba(0, 0, 0, 0);
-    four: rgba(0, 0, 0, 0.67);
-    four: #fff;
-    four: rgba(187, 119, 136, 0.8);
+    i: rgba(0, 0, 0, 0);
+    ii: rgba(0, 0, 0, 0.67);
+    iii: #fff;
+    iv: rgba(187, 119, 136, 0.8);
   }
   ~~~
 
@@ -96,17 +96,17 @@
 
   ~~~ lay
   color[hex="2"] {
-    two: #00
-    two: #ff
-    two: #3a
+    i: #00
+    ii: #ff
+    iii: #3a
   }
   ~~~
 
   ~~~ css
   color[hex="2"] {
-    two: #000;
-    two: #fff;
-    two: #3a3a3a;
+    i: #000;
+    ii: #fff;
+    iii: #3a3a3a;
   }
   ~~~
 
@@ -114,17 +114,17 @@
 
   ~~~ lay
   color[hex="1"] {
-    one: #0
-    one: #f
-    one: #3
+    i: #0
+    ii: #f
+    iii: #3
   }
   ~~~
 
   ~~~ css
   color[hex="1"] {
-    one: #000;
-    one: #fff;
-    one: #333;
+    i: #000;
+    ii: #fff;
+    iii: #333;
   }
   ~~~
 
@@ -132,13 +132,13 @@
 
   ~~~ lay
   color.true {
-    foo: #f.true? (#a7 and true) (#0000 or true) #000.true? #fff0.true? #00000000.true?
+    i: #f.true? (#a7 and true) (#0000 or true) #000.true? #fff0.true? #00000000.true?
   }
   ~~~
 
   ~~~ css
   color.true {
-    foo: true true rgba(0, 0, 0, 0) true true true;
+    i: true true rgba(0, 0, 0, 0) true true true;
   }
   ~~~
 
@@ -262,13 +262,13 @@
 
   ~~~ lay
   color.empty {
-    foo: (not #000f.empty?) #0000.empty?
+    i: (not #000f.empty?) #0000.empty?
   }
   ~~~
 
   ~~~ css
   color.empty {
-    foo: true true;
+    i: true true;
   }
   ~~~
 
@@ -304,19 +304,19 @@
 
   ~~~ lay
   color.opaque {
-    foo: #000.opaque
-    foo: #000d.opaque
-    foo: #fa2a.opaque
-    foo: #b271acf2.opaque
+    i: #000.opaque
+    ii: #000d.opaque
+    iii: #fa2a.opaque
+    iv: #b271acf2.opaque
   }
   ~~~
 
   ~~~ css
   color.opaque {
-    foo: #000;
-    foo: #000;
-    foo: #fa2;
-    foo: #b271ac;
+    i: #000;
+    ii: #000;
+    iii: #fa2;
+    iv: #b271ac;
   }
   ~~~
 
@@ -326,19 +326,19 @@
 
   ~~~ lay
   color.grey {
-    foo: #000.grey?
-    foo: #666.grey?
-    foo: #f07.grey?
-    foo: #ffffff.grey?
+    i: #000.grey?
+    ii: #666.grey?
+    iii: #f07.grey?
+    iv: #ffffff.grey?
   }
   ~~~
 
   ~~~ css
   color.grey {
-    foo: true;
-    foo: true;
-    foo: false;
-    foo: true;
+    i: true;
+    ii: true;
+    iii: false;
+    iv: true;
   }
   ~~~
 
@@ -348,13 +348,13 @@
 
   ~~~ lay
   color.gray {
-    foo: #000.gray? #666.gray? #f07.gray? #ffffff.gray?
+    i: #000.gray? #666.gray? #f07.gray? #ffffff.gray?
   }
   ~~~
 
   ~~~ css
   color.gray {
-    foo: true true false true;
+    i: true true false true;
   }
   ~~~
 
@@ -400,19 +400,19 @@
 
   ~~~ lay
   color.light {
-    foo: #000.light?
-    foo: #ffff.light?
-    foo: #00ff40.light?
-    foo: #333.light?
+    i: #000.light?
+    ii: #ffff.light?
+    iii: #00ff40.light?
+    iv: #333.light?
   }
   ~~~
 
   ~~~ css
   color.light {
-    foo: false;
-    foo: true;
-    foo: true;
-    foo: false;
+    i: false;
+    ii: true;
+    iii: true;
+    iv: false;
   }
   ~~~
 
@@ -422,19 +422,19 @@
 
   ~~~ lay
   color.dark {
-    foo: #000.dark?
-    foo: #ffff.dark?
-    foo: #00ff40.dark?
-    foo: #333.dark?
+    i: #000.dark?
+    ii: #ffff.dark?
+    iii: #00ff40.dark?
+    iv: #333.dark?
   }
   ~~~
 
   ~~~ css
   color.dark {
-    foo: true;
-    foo: false;
-    foo: false;
-    foo: true;
+    i: true;
+    ii: false;
+    iii: false;
+    iv: true;
   }
   ~~~
 

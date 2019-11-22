@@ -617,20 +617,20 @@ Strings
 - Returns the number of characters in the string.
 
   ~~~ lay
-  body {
-    foo: "".length
-    foo: " hello world ".length
-    foo: " hello world ".trim.length
-    foo: "hello  world ".length
+  string.length {
+    i: "".length
+    ii: " hello world ".length
+    iii: " hello world ".trim.length
+    iv: "hello  world ".length
   }
   ~~~
 
   ~~~ css
-  body {
-    foo: 0;
-    foo: 13;
-    foo: 11;
-    foo: 13;
+  string.length {
+    i: 0;
+    ii: 13;
+    iii: 11;
+    iv: 13;
   }
   ~~~
 
@@ -639,21 +639,21 @@ Strings
 - Returns `true` if the string has 0 length
 
   ~~~ lay
-  body {
-    foo: "hello world".empty?
-    foo: "   ".empty? '\
+  string.empty {
+    i: "hello world".empty?
+    ii: "   ".empty? '\
   '.empty? "   ".trim.empty?
-    foo: ``.empty?
-    foo: '0'.empty?
+    iii: ``.empty?
+    iv: '0'.empty?
   }
   ~~~
 
   ~~~ css
-  body {
-    foo: false;
-    foo: false true true;
-    foo: true;
-    foo: false;
+  string.empty {
+    i: false;
+    ii: false true true;
+    iii: true;
+    iv: false;
   }
   ~~~
 

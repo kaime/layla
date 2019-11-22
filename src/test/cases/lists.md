@@ -211,39 +211,43 @@ Lists
   l2 = 1 2 3 4 5 6
   l3 = 1 2 3 4 (5 6)
 
-  body {
-    foo: l1.length
-    foo: l2.length
-    foo: l3.length
-    foo: (l3::4).length l3::4::0 + l3::4::1
-    foo: l3::4.length
+  list.length {
+    i: l1.length
+    ii: l2.length
+    iii: l3.length
+    iv: (l3::4).length l3::4::0 + l3::4::1
+    v: l3::4.length
   }
   ~~~
 
   ~~~ css
-  body {
-    foo: 0;
-    foo: 6;
-    foo: 5;
-    foo: 2 11;
-    foo: 2;
+  list.length {
+    i: 0;
+    ii: 6;
+    iii: 5;
+    iv: 2 11;
+    v: 2;
   }
   ~~~
 
 ### `empty?`
 
-- Tells if the list has no elements
+- Returns `true` if the list has no elements
 
   ~~~ lay
-  foo: ().empty?
-  bar: (null,).empty?
-  baz: (1, 2).empty?
+  list.empty {
+    i: ().empty?
+    ii: (null,).empty?
+    iii: (1, 2).empty?
+  }
   ~~~
 
   ~~~ css
-  foo: true;
-  bar: false;
-  baz: false;
+  list.empty {
+    i: true;
+    ii: false;
+    iii: false;
+  }
   ~~~
 
 ### `empty`

@@ -366,6 +366,24 @@ Blocks
   }
   ~~~~
 
+### `empty?`
+
+- Returns `true` if the block has no items
+
+  ~~~ lay
+  block.empty {
+    i: {}.empty?
+    ii: { foo: "bar" }.empty?
+  }
+  ~~~
+
+  ~~~ css
+  block.empty {
+    i: true;
+    ii: false;
+  }
+  ~~~
+
 ## Operators
 
 ### `::`

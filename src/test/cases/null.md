@@ -95,3 +95,20 @@ Null
   }
   ~~~
 
+## Methods
+
+### `empty?`
+
+- Returns `true` for `null`
+
+  ~~~ lay
+  null.empty {
+    i: null.empty?
+  }
+  ~~~
+
+  ~~~ css
+  null.empty {
+    i: true;
+  }
+  ~~~

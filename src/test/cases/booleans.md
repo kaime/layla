@@ -303,3 +303,27 @@ Booleans
   b: johnny OR mary;
   c: johnny Or mary;
   ~~~
+
+## Methods
+
+### `empty?`
+
+- Returns `true` if the boolean is `true`
+
+  ~~~ lay
+  boolean.empty {
+    i: true.empty?
+    ii: false.empty?
+    iii: (1 > 0).empty?
+    iv: (1 == 0).empty?
+  }
+  ~~~
+
+  ~~~ css
+  boolean.empty {
+    i: false;
+    ii: true;
+    iii: false;
+    iv: true;
+  }
+  ~~~
