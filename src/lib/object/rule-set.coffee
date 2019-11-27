@@ -10,7 +10,6 @@ class RuleSet extends Rule
     get: -> @prelude
     set: (@prelude) ->
 
-
   '.selector': -> new QuotedString @selector.toString()
 
 

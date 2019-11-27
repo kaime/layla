@@ -1047,6 +1047,8 @@ class BaseParser extends Parser
 
     return args
 
+  parseAtRulePrelude: -> @parseAtRuleArguments()
+
   ###
   Parse an at-rule statement. Is't made of an at-ident optionally followed by a
   list of arguments and/or a block.
@@ -1063,7 +1065,7 @@ class BaseParser extends Parser
 
         @skipHorizontalWhitespace()
 
-        if rule.arguments = @parseAtRuleArguments()
+        if rule.prelude = @parseAtRulePrelude()
           back = @token
 
         @skipAllWhitespace()

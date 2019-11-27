@@ -173,8 +173,11 @@ class Command
           try
             # TODO Set a filename
             res = options.context.evaluate text
-            @emit res, options
-            @stdout options.eol, options
+
+            if res?
+              @emit res, options
+              @stdout options.eol, options
+
             reset()
           catch e
             if e instanceof ProgramError

@@ -52,25 +52,44 @@ class Normalizer extends Visitor
     if body = node.items
       root ?= node
       node.items = []
+      child = null
 
       while body.length
         child = body.shift()
 
         if child instanceof Rule
-          hoist =
-            (@options.hoist_rule_sets and
-              (child instanceof RuleSet) and
-              (node instanceof RuleSet)
-            ) or
-            (child instanceof AtRule and (
-              @options.hoist_at_rules or
-              @options["hoist_#{child.name}_at_rules"]
-            ))
+          parent = node
 
-          (if hoist then root else node).items.push child
+          if child instanceof RuleSet
+            hoist = (
+              (node instanceof RuleSet) and
+              @options.hoist_rule_sets
+            )
 
-          if child instanceof RuleSet and node instanceof RuleSet
-            child.selector = child.selector.resolve node.selector
+            if hoist
+              child.selector = child.selector.resolve node.selector
+              root.items.push child
+              parent = root
+            else
+              node.items.push child
+          else if child instanceof AtRule
+            hoist = (
+              (node instanceof RuleSet) and
+              (@options.hoist_at_rules or
+              @options["hoist_#{child.name}_at_rules"])
+            )
+
+            if hoist
+              rule_set = node.copy child.items
+              child.empty()
+              child.push rule_set
+              root.items.push child
+              child = rule_set
+              parent = root
+            else
+              node.items.push child
+          else
+            node.items.push child
 
           @normalizeBlock child, root
 
@@ -85,8 +104,7 @@ class Normalizer extends Visitor
             )
 
           if strip
-            root.items.splice (root.items.indexOf child), 1
-
+            parent.items.splice parent.items.indexOf(child), 1
         else if child instanceof Property
           if @options.strip_empty_properties and @isEmptyProperty child
             continue

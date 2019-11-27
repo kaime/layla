@@ -18,7 +18,7 @@ class Property extends Object
   isEqual: (other) ->
     (other instanceof Property) and
     (other.name is @name) and
-    (other.value.isEqual @value)
+    other.value.isEqual(@value)
 
   copy: (name = @name, value = @value, etc...) ->
     super name, value.clone(), etc...

@@ -347,14 +347,16 @@ class CSSEmitter extends Emitter
 
     return str
 
+  emitAtRulePrelude: (rule) -> @emitAtRuleArguments rule.prelude
+
   emitAtRule: (rule) ->
     css = ''
 
     if rule.standalone or not rule.isEmpty()
       css += @emitAtRuleName rule
 
-      if rule.arguments?
-        css += " #{@emitAtRuleArguments rule.arguments}"
+      if rule.prelude?
+        css += " #{@emitAtRulePrelude rule}"
 
       if rule.items?.length
         css += " #{@emitBlock rule}"

@@ -750,10 +750,10 @@ class Evaluator extends Class
 
   ###
   ###
-  evaluateAtRuleArguments: (args, context) ->
+  evaluateAtRulePrelude: (args, context) ->
     args.map (arg) =>
       if arg instanceof Array
-        return @evaluateAtRuleArguments arg, context
+        return @evaluateAtRulePrelude arg, context
       else if arg instanceof PropertyDeclaration
         name = @getStringValue arg.names[0], context
         value = (@evaluateNode arg.value, context).clone() # TODO ??
@@ -768,12 +768,12 @@ class Evaluator extends Class
     context.block.items.push rule
     rule.name = @getStringValue node.name, context
 
-    args = @evaluateAtRuleArguments node.arguments, context
+    prelude = @evaluateAtRulePrelude node.prelude, context
 
-    if not args.length
-      args = null
+    if not prelude.length
+      prelude = null
 
-    rule.arguments = args
+    rule.prelude = prelude
 
     ctx = context.child rule
 
@@ -798,7 +798,7 @@ class Evaluator extends Class
       program = @parse program
 
     try
-      return @evaluateNode program, context
+      return Null.ifNull @evaluateNode(program, context)
     catch err
       if err instanceof Directive
         @runtimeError "Uncaught `#{err.name}`"

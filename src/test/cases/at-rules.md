@@ -1,8 +1,6 @@
 At-rules
 ========
 
-- Can be nested
-
 ## Name
 
 - Must be legal, but can be any
@@ -27,24 +25,46 @@ At-rules
   }
   ~~~
 
+- Can contain nested rule sets
+
+  ~~~ lay
+  @media screen{
+    body {
+      background: white
+    }
+
+    div {}
+  }
+  ~~~
+
+  ~~~ css
+  @media screen {
+    body {
+      background: #fff;
+    }
+  }
+  ~~~
+
+
 - Can contain interpolation
 
   ~~~ lay
-  vendors = webkit, moz
-  for vendor in vendors {
-    @-#{vendor}-supports (border-radius) {
+  $vendors = `webkit`, `moz`
+
+  for $vendor in $vendors {
+    @-#{$vendor}-supports (border-radius: 1px) {
       body {
         border-radius: 1px
       }
     }
 
-    @-#{vendor}-supports (border-radius) {
+    @-#{$vendor}-supports (border-radius: 2px) {
       body {
         border-radius: 2px
       }
     }
 
-    @-#{vendor}-supports (border-radius) {
+    @-#{$vendor}-supports (border-radius: 3px) {
       body {
         border-radius: 3px
       }
@@ -53,37 +73,37 @@ At-rules
   ~~~
 
   ~~~ css
-  @-webkit-supports (border-radius) {
+  @-webkit-supports (border-radius: 1px) {
     body {
       border-radius: 1px;
     }
   }
 
-  @-webkit-supports (border-radius) {
+  @-webkit-supports (border-radius: 2px) {
     body {
       border-radius: 2px;
     }
   }
 
-  @-webkit-supports (border-radius) {
+  @-webkit-supports (border-radius: 3px) {
     body {
       border-radius: 3px;
     }
   }
 
-  @-moz-supports (border-radius) {
+  @-moz-supports (border-radius: 1px) {
     body {
       border-radius: 1px;
     }
   }
 
-  @-moz-supports (border-radius) {
+  @-moz-supports (border-radius: 2px) {
     body {
       border-radius: 2px;
     }
   }
 
-  @-moz-supports (border-radius) {
+  @-moz-supports (border-radius: 3px) {
     body {
       border-radius: 3px;
     }
@@ -137,8 +157,6 @@ At-rules
 
   ~~~ css
   ~~~
-
-- Can contain nested rules
 
 ## Arguments
 
@@ -397,7 +415,45 @@ At-rules
 
 - Can be nested in a ruleset
 
-- Can be nested in another `@media`
+  ~~~ lay
+  body .button {
+    min-width: 6em
+
+    @media screen and (max-width: 480px) {
+      min-width: 100%
+    }
+
+    @media screen and (min-width: 481px) {
+      box-shadow: 0 2px 4px rgba(0,0,0,.85)
+    }
+
+    @foo {}
+
+    @bar {
+      foo {}
+    }
+  }
+  ~~~
+
+  ~~~ css
+  body .button {
+    min-width: 6em;
+  }
+
+  @media screen and (max-width: 480px) {
+    body .button {
+      min-width: 100%;
+    }
+  }
+
+  @media screen and (min-width: 481px) {
+    body .button {
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.85);
+    }
+  }
+  ~~~
+
+- Can be nested in other `@media` rules
 
 - Can be nested in an unknown at-rule
 

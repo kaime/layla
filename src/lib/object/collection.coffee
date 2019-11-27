@@ -39,6 +39,10 @@ class Collection extends Indexed
   contains: (other) ->
     @items.some other.isEqual.bind other
 
+  empty: ->
+    @items = []
+    return @
+
   isUnique: ->
     for a in @items
       for b in @items
@@ -106,7 +110,7 @@ class Collection extends Indexed
 
   '.slice': (context, start, end) -> @copy @slice(start, end)
 
-  '.empty': -> @items = []; @
+  '.empty': -> @empty()
 
   '.first': -> @items[0] or Null.NULL
 
