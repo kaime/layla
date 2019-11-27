@@ -44,15 +44,32 @@ class Normalizer extends Visitor
     else
       node
 
-  normalizeRule: (node, root) -> node
-
   isEmptyProperty: (node) -> node.value instanceof Null
 
-  normalizeBlock: (node, root) ->
+  pushBlock: (node, stack) ->
+    parent = stack[stack.length - 1]
+    parent.items.push node
+
+    @normalizeBlock node, stack
+
+    strip =
+      not node.items.length and (
+        @options.strip_empty_blocks or
+        (node instanceof RuleSet and @options.strip_empty_rule_sets) or
+        (node instanceof RuleSet and (
+          @options.strip_empty_rule_sets or
+          @options["strip_empty_#{node.name}_at_rules"]
+        ))
+      )
+
+    if strip
+      parent.items.splice parent.items.indexOf(node), 1
+
+  normalizeBlock: (node, stack = []) ->
     if body = node.items
-      root ?= node
       node.items = []
       child = null
+      stack = [stack..., node]
 
       while body.length
         child = body.shift()
@@ -66,12 +83,15 @@ class Normalizer extends Visitor
               @options.hoist_rule_sets
             )
 
+            parent_stack = [stack...]
+
             if hoist
               child.selector = child.selector.resolve node.selector
-              root.items.push child
-              parent = root
-            else
-              node.items.push child
+
+              while parent_stack.length > 1
+                if parent_stack.pop() instanceof AtRule
+                  break
+            @pushBlock child, parent_stack
           else if child instanceof AtRule
             hoist = (
               (node instanceof RuleSet) and
@@ -83,28 +103,12 @@ class Normalizer extends Visitor
               rule_set = node.copy child.items
               child.empty()
               child.push rule_set
-              root.items.push child
+              @pushBlock child, [stack[0]]
               child = rule_set
-              parent = root
             else
-              node.items.push child
+              @pushBlock child, stack
           else
-            node.items.push child
-
-          @normalizeBlock child, root
-
-          strip =
-            not child.items.length and (
-              @options.strip_empty_blocks or
-              (child instanceof RuleSet and @options.strip_empty_rule_sets) or
-              (child instanceof RuleSet and (
-                @options.strip_empty_rule_sets or
-                @options["strip_empty_#{child.name}_at_rules"]
-              ))
-            )
-
-          if strip
-            parent.items.splice parent.items.indexOf(child), 1
+            @pushBlock child, stack
         else if child instanceof Property
           if @options.strip_empty_properties and @isEmptyProperty child
             continue

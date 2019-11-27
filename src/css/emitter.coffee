@@ -239,6 +239,8 @@ class CSSEmitter extends Emitter
   emitProperty: (property) ->
     @emitPropertyName(property) + ': ' + @emitPropertyValue(property)
 
+  emitParentSelector: (selector) -> '&'
+
   emitPseudoSelector: (selector) ->
     str = selector.escape selector.name, @options.charset
 

@@ -453,6 +453,32 @@ At-rules
   }
   ~~~
 
+  ~~~ lay
+  body {
+    button {
+      @media screen and (max-width: 480px) {
+        min-width: 100%
+
+        &.primary {
+          font-weight: bold
+        }
+      }
+    }
+  }
+  ~~~
+
+  ~~~ css
+  @media screen and (max-width: 480px) {
+    body button {
+      min-width: 100%;
+    }
+
+    body button.primary {
+      font-weight: bold;
+    }
+  }
+  ~~~
+
 - Can be nested in other `@media` rules
 
 - Can be nested in an unknown at-rule
