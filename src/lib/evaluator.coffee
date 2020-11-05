@@ -548,9 +548,13 @@ class Evaluator extends Class
   evaluateUse: (node, context) ->
     for arg in node.arguments
       name = @evaluateNode arg
+
       unless name instanceof String
         @valueError "Bad argument for `use`"
-      @layla.use name.value
+
+      Plugin = context.loadPlugin name.value
+
+      context.use new Plugin
 
     return Null.NULL
 

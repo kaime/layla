@@ -124,6 +124,9 @@ class Context extends Class
 
   visit: (node) ->
 
+  loadPlugin: (plugin) ->
+    return require "layla-plugin-#{plugin}"
+
   uses: (plugin) ->
     (plugin in @_plugins) or (@parent and @parent.uses plugin) or no
 
