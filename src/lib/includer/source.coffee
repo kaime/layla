@@ -10,9 +10,13 @@ IncludeError = require '../error/include'
 class SourceIncluder extends Includer
 
   @EXTENSIONS: []
+  @PARSER: null
 
   parse: (source) ->
-    throw new IncludeError "Don't know how to parse"
+    if not @class.PARSER
+      throw new IncludeError "Don't know how to parse"
+
+    return (new @class.PARSER).parse source
 
   canInclude: (uri, context) ->
     url = URL.parse uri
